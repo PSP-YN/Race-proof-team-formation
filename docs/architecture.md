@@ -20,7 +20,7 @@ Joining inserts the membership and conditionally increments memberCount inside o
 
 Leaving deletes the member record and recomputes memberCount in a transaction. If the leader leaves, leadership passes to the earliest remaining member. If the last member leaves, the team is marked deleted and its invites are revoked.
 
-Invite acceptance checks an opaque random token by its SHA-256 hash, expiry, revocation and single-use state. Membership, capacity reservation, invite consumption and audit insertion happen in one transaction.
+Invite acceptance checks an opaque random token by its SHA-256 hash, expiry, revocation and single-use state. Membership, capacity reservation, invite consumption and audit insertion happen in one transaction. When a team leader leaves, all outstanding invites are revoked in that same transaction before leadership transfers.
 
 ## API surface
 - GET /api/auth; POST /api/auth with register, login or logout action.
