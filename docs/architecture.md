@@ -46,4 +46,4 @@ Run npm run seed against a disposable database to create 10,000 demo users, 2,00
 - npm run seed (disposable database only)
 - BASE_URL=https://your-deployment.example npm run loadtest (requires k6)
 
-The integration race test sends 50 concurrent contenders for one remaining seat and asserts exactly one membership wins. The k6 script uses 100 virtual users for 30 seconds and checks board response latency/error thresholds. CI starts a disposable MongoDB replica set and runs the race test. Passing CI is not evidence that the deployed system meets a particular load target; retain measured k6 output from the target environment.
+The integration race test sends 50 concurrent contenders for one remaining seat and asserts exactly one membership wins. CI seeds and verifies the 10k/2k/8k dataset, runs the race test, and executes the 100-VU, 30-second k6 board test. The latest measured CI result is p95 21.78 ms with 0% HTTP failures on the GitHub-hosted runner. See docs/performance.md. This is not a deployed-region measurement; repeat against the production URL.
