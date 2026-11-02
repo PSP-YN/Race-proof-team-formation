@@ -1,22 +1,30 @@
 # Test strategy and verification matrix
 
-This document separates automated white-box verification from black-box behavior checks. A passing test suite is evidence for the tested cases, not proof that every production configuration is correct.
+This document separates automated white-box verification, automated black-box smoke checks, and manual staging release checks. A passing test suite is evidence for the tested cases, not proof that every production configuration is correct.
 
-## White-box tests
+## White-box tests currently automated
 
-| Area | Verification | Required assertion |
+| Area | Automated location | Current assertion |
 |---|---|---|
-| Domain invariants | `tests/unit/invariants.test.ts` | Capacity, membership and state transitions reject invalid states |
-| Matching | Unit tests | Scores reward uncovered team needs and available capacity |
-| Persistence | Replica-set integration tests | Transactional writes and unique indexes preserve invariants |
-| Contended join | `tests/integration/race.test.ts` | Exactly one of 50 contenders obtains the final seat |
-| Authentication | Unit/integration coverage | Invalid credentials, unverified users and invalid sessions are rejected |
-| Idempotency | Integration coverage | Same key/same target is replay-safe; same key/different target conflicts |
-| Invitations | Integration coverage | Expiry, revocation, single use and duplicate acceptance are enforced |
-| Security | API tests and review | Origin checks, rate limits, role checks and token redaction are enforced |
-| Build integrity | CI | TypeScript, test suite, dependency audit and production build pass |
+| Team size invariants | tests/unit/invariants.test.ts | Valid min/max sizes are accepted; invalid ranges are rejected |
+| Skill matching | tests/unit/invariants.test.ts | Scores reward uncovered skills and available capacity; unrelated or already-covered skills are not rewarded |
+| Contended membership | tests/integration/race.test.ts | Exactly one of 50 contenders obtains the final seat; stored membership count and team memberCount remain consistent |
+| Type and build integrity | CI | TypeScript typecheck and Next.js production build pass |
+| Dependency risk | CI | npm audit reports no vulnerabilities at the configured moderate threshold |
 
-## Black-box checks
+The current automated suite is intentionally small. It does not yet contain dedicated automated tests for every authentication, invitation, authorization, or abuse-control edge case below. Those remain explicit staging release checks rather than implied test coverage.
+
+## Automated black-box smoke checks
+
+The CI workflow starts the production Next.js server against a disposable MongoDB replica set and runs scripts/smoke.mjs. It verifies:
+
+- Health endpoint and database ping
+- Security headers and API no-store cache policy
+- Cross-origin authentication mutation is rejected
+- Public board JSON response shape
+- SSE response headers and initial connected event
+
+## Manual staging black-box checks
 
 Run these against a disposable staging deployment using separate test accounts. Do not use real participant data.
 
@@ -39,14 +47,14 @@ Run these against a disposable staging deployment using separate test accounts. 
 | Origin protection | Submit a mutation from a foreign origin | Request is rejected |
 | Rate limiting | Exceed a configured endpoint limit | Request is throttled and telemetry is recorded without raw secrets |
 | Realtime | Open the board in two sessions and mutate a team | Other session receives an SSE update or documented polling fallback |
-| Health | Call `/api/health` | Database health is reported; dependency failure returns 503 |
+| Health | Call /api/health | Database health is reported; dependency failure returns 503 |
 | Failure mode | Stop or disconnect MongoDB in staging | API fails safely; no success response is returned for failed writes |
 
 ## CI verification
 
-The GitHub Actions workflow provisions a disposable MongoDB replica set, seeds and verifies 10,000 users, 2,000 teams and 8,000 memberships, runs typecheck and tests, builds the application, starts the production server, runs smoke checks, and executes the 100-VU/30-second k6 board test.
+The GitHub Actions workflow provisions a disposable MongoDB replica set, seeds and verifies 10,000 users, 2,000 teams and 8,000 memberships, runs typecheck and automated tests, audits locked dependencies, builds the application, starts the production server, runs smoke checks, and executes the 100-VU/30-second k6 board test.
 
-Latest successful run: https://github.com/PSP-YN/Race-proof-team-formation/actions/runs/41517226227
+Latest successful full CI run before the current branch head: https://github.com/PSP-YN/Race-proof-team-formation/actions/runs/41520214037
 
 ## Manual release sign-off
 
