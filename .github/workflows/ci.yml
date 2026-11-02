@@ -1,1 +1,19 @@
-name: CI\non: [push,pull_request]\njobs:\n  verify:\n    runs-on: ubuntu-latest\n    steps:\n      - uses: actions/checkout@v4\n      - uses: actions/setup-node@v4\n        with: {node-version: 20,cache: npm}\n      - run: npm install\n      - run: npm run typecheck\n      - run: npm test\n      - run: npm run build\n        env:\n          MONGODB_URI: mongodb://127.0.0.1:27017/crewforge\n          JWT_SECRET: test-secret-at-least-thirty-two-characters-long\n          NEXT_PUBLIC_APP_URL: http://localhost:3000\n
+name: CI
+on: [push, pull_request]
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - run: npm install
+      - run: npm run typecheck
+      - run: npm test
+      - run: npm run build
+        env:
+          MONGODB_URI: mongodb://127.0.0.1:27017/crewforge
+          JWT_SECRET: test-secret-at-least-thirty-two-characters-long
+          NEXT_PUBLIC_APP_URL: http://localhost:3000

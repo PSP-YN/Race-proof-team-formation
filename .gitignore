@@ -1,1 +1,7 @@
-node_modules\n.next\n.env*\n!.env.example\ncoverage\n.DS_Store\n*.log
+node_modules
+.next
+.env*
+!.env.example
+coverage
+.DS_Store
+*.log

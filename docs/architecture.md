@@ -1,1 +1,18 @@
-# Architecture\n\n## Collections\n- users: normalized email and bcrypt password hash.\n- teams: team metadata, leader, status and authoritative memberCount.\n- memberships: one participant per hackathon, enforced by unique compound index (hackathonId,userId).\n- idempotency: user-scoped request keys.\n- audit: append-only event history.\n- invites: reserved for hashed, expiring invitation tokens.\n\n## Concurrency model\nJoining runs in a MongoDB transaction: insert the unique participant membership, then atomically increment the team counter only when memberCount < maxSize. If either operation fails, the transaction aborts. The unique membership index prevents joining two teams in one hackathon; the conditional counter update prevents overfilling a team. Transaction retry behavior handles write conflicts. A replica set is required (MongoDB Atlas qualifies).\n\n## Deployment\nDeploy to Vercel with MongoDB Atlas. Set MONGODB_URI, JWT_SECRET (32+ characters), NEXT_PUBLIC_APP_URL, SEED_HACKATHON_ID and NEXT_PUBLIC_HACKATHON_ID. Configure a MongoDB replica set. Add edge rate limits and origin/CSRF checks before public production launch.\n\n## Current scope\nAccount registration/login, team creation/discovery, transactional join/leave, leader succession and last-member deletion are implemented. Invite-code management, skill-match scoring, SSE/WebSocket push, 10k/2k seed tooling and full integration/load evidence remain follow-up work; board currently polls every five seconds.
+# Architecture
+
+## Collections
+- users: normalized email and bcrypt password hash.
+- teams: team metadata, leader, status and authoritative memberCount.
+- memberships: one participant per hackathon, enforced by unique compound index (hackathonId,userId).
+- idempotency: user-scoped request keys.
+- audit: append-only event history.
+- invites: index definitions are prepared for expiring invite tokens; invite lifecycle endpoints are not implemented yet.
+
+## Concurrency model
+Joining runs in a MongoDB transaction: insert the unique participant membership, then atomically increment the team counter only when memberCount < maxSize. If either operation fails, the transaction aborts. The unique membership index prevents joining two teams in one hackathon; the conditional counter update prevents overfilling a team. MongoDB transaction retry behavior handles write conflicts. A replica set is required (MongoDB Atlas qualifies).
+
+## Deployment
+Deploy to Vercel with MongoDB Atlas. Set MONGODB_URI, JWT_SECRET (32+ characters), NEXT_PUBLIC_APP_URL, SEED_HACKATHON_ID and NEXT_PUBLIC_HACKATHON_ID. Configure a MongoDB replica set.
+
+## Security and remaining requirements
+Passwords use bcrypt cost 12; sessions use signed HttpOnly SameSite=Lax cookies. Add edge rate limiting and strict origin/CSRF checks before public production use. Implement invite lifecycle, leader-only edit operations, skill/time-zone matching with explanations, server-push updates, seed tooling, and measured load/race evidence. The board currently polls every five seconds.
