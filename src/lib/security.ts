@@ -34,7 +34,7 @@ export async function guardMutation(req:NextRequest,scope:string,ipLimit=10_000,
  for(const counter of counters){
   const key=createHash("sha256").update(counter.value).digest("hex"),id=key+":"+bucket;
   const count=await incrementBucket(rateLimits,id,new Date((bucket+2)*windowMs),scope);
-  if(count>counter.limit)return NextResponse.json({error:"Too many requests. Try again shortly."},{status:429,headers:{"Retry-After":String(Math.max(1,Math.ceil(((bucket+1)*windowMs-Date.now())/1000)))}});
+  if(count>counter.limit){try{await db.collection("securityEvents").insertOne({scope,identityHash:createHash("sha256").update(counter.value).digest("hex"),event:"RATE_LIMIT_EXCEEDED",createdAt:new Date(),metadata:{limit:counter.limit,windowMs}})}catch{/* Security telemetry must never break request protection. */}return NextResponse.json({error:"Too many requests. Try again shortly."},{status:429,headers:{"Retry-After":String(Math.max(1,Math.ceil(((bucket+1)*windowMs-Date.now())/1000)))}});}
  }
  return null;
 }

@@ -18,7 +18,10 @@ export async function database():Promise<Db>{
    db.collection("invites").createIndex({expiresAt:1},{expireAfterSeconds:0}),
    db.collection("idempotency").createIndex({userId:1,key:1},{unique:true}),
    db.collection("audit").createIndex({hackathonId:1,createdAt:-1},{name:"audit_timeline"}),
-   db.collection("rateLimits").createIndex({expiresAt:1},{expireAfterSeconds:0})
+   db.collection("rateLimits").createIndex({expiresAt:1},{expireAfterSeconds:0}),
+   db.collection("securityEvents").createIndex({createdAt:1},{expireAfterSeconds:60*60*24*30}),
+   db.collection("securityEvents").createIndex({scope:1,createdAt:-1},{name:"security_event_timeline"}),
+   db.collection("invites").createIndex({teamId:1,createdAt:-1},{name:"team_invites"})
   ]).then(()=>undefined);
   g.indexesPromise=pending.catch(error=>{g.indexesPromise=undefined;throw error});
  }
