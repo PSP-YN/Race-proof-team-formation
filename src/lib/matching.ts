@@ -1,3 +1,5 @@
+// Matching weights unmet skill coverage at 75% and remaining capacity at 25%.
+// Normalize skills before comparison so casing and duplicate entries do not distort scores.
 export type TeamMatchScore={score:number;reason:string;addedSkills:string[];capacity:number};
 export function scoreTeamMatch(userSkills:string[],requiredSkills:string[],representedSkills:string[],memberCount:number,maxSize:number):TeamMatchScore{
  const mine=[...new Set(userSkills.map(s=>s.trim().toLowerCase()).filter(Boolean))];
