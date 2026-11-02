@@ -1,11 +1,13 @@
 import {NextRequest} from "next/server";
 import {database} from "@/lib/db";
+import {guardEventStream} from "@/lib/security";
 
 export const runtime="nodejs";
 export const dynamic="force-dynamic";
 export const maxDuration=25;
 
 export async function GET(req:NextRequest){
+ const blocked=await guardEventStream(req);if(blocked)return blocked;
  const hackathonId=req.nextUrl.searchParams.get("hackathonId");
  if(!hackathonId||hackathonId.length>100)return new Response("Invalid hackathonId",{status:400});
  const encoder=new TextEncoder();
