@@ -37,10 +37,11 @@ jobs:
           docker exec crewforge-mongo mongosh crewforge --quiet --eval '
             const h="hack4hack-crew-hiring-2026";
             const users=db.users.countDocuments({email:/^demo\+\d{5}@crewforge\.local$/});
+            const verified=db.users.countDocuments({email:/^demo\\+\\d{5}@crewforge\\.local$/,emailVerified:true});
             const teams=db.teams.countDocuments({hackathonId:h});
             const memberships=db.memberships.countDocuments({hackathonId:h});
-            printjson({users,teams,memberships});
-            if(users!==10000||teams!==2000||memberships!==8000) quit(1);
+            printjson({users,verified,teams,memberships});
+            if(users!==10000||verified!==10000||teams!==2000||memberships!==8000) quit(1);
           '
         env:
           MONGODB_URI: mongodb://127.0.0.1:27017/crewforge?replicaSet=rs0
@@ -53,6 +54,7 @@ jobs:
           MONGODB_URI: mongodb://127.0.0.1:27017/crewforge?replicaSet=rs0
           JWT_SECRET: test-secret-at-least-thirty-two-characters-long
           NEXT_PUBLIC_APP_URL: http://localhost:3000
+          TRUSTED_CLIENT_IP_HEADER: x-real-ip
       - name: Install k6
         run: |
           curl -fsSL https://dl.k6.io/key.gpg | sudo gpg --dearmor -o /usr/share/keyrings/k6-archive-keyring.gpg
@@ -68,6 +70,7 @@ jobs:
             sleep 2
           done
           if [ "$ready" -ne 1 ]; then cat /tmp/crewforge-next.log; exit 1; fi
+          BASE_URL=http://127.0.0.1:3000 npm run smoke
           BASE_URL=http://127.0.0.1:3000 npm run loadtest
         env:
           MONGODB_URI: mongodb://127.0.0.1:27017/crewforge?replicaSet=rs0
