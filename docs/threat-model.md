@@ -49,7 +49,7 @@ This is a practical application-level threat model for the current repository. I
 | Sensitive telemetry leakage | Privacy breach | Hashed identity keys; no raw password/token/IP in security events | Review platform logs and external alert destinations |
 | Database outage | Failed writes or degraded app | Error handling; health endpoint; bounded operations | Test failover, backup restore, and timeout behavior |
 | Dependency compromise | Code execution or data theft | npm audit, lockfile, Dependabot, CodeQL | Pin critical GitHub Actions to reviewed SHAs and review dependency updates |
-| CI token abuse | Repository compromise | Read-only default workflow permissions; separate lockfile bootstrap job is owner/repository scoped | Review all workflow changes and keep privileged tokens scoped |
+| CI token abuse | Repository compromise | Read-only CI permissions; one-time lockfile bootstrap is complete and no longer part of the workflow | Review all workflow changes and keep privileged tokens scoped |
 | WAF false positives | User lockout or broken SSE | Terraform template and log-mode rollout guidance | WAF is not deployed; test before enforcement |
 
 ## Security invariants
