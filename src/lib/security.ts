@@ -14,8 +14,9 @@ export async function guardMutation(req:NextRequest,scope:string,limit=30,window
   const bucket=Math.floor(Date.now()/windowMs);
   const id=key+":"+bucket;
   const db=await database();
-  await db.collection("rateLimits").updateOne({_id:id},{$inc:{count:1},$setOnInsert:{expiresAt:new Date((bucket+2)*windowMs),scope}},{upsert:true});
-  const state=await db.collection("rateLimits").findOne({_id:id},{projection:{count:1}});
+  const rateLimits=db.collection<{_id:string;count:number;expiresAt:Date;scope:string}>("rateLimits");
+  await rateLimits.updateOne({_id:id},{$inc:{count:1},$setOnInsert:{expiresAt:new Date((bucket+2)*windowMs),scope}},{upsert:true});
+  const state=await rateLimits.findOne({_id:id},{projection:{count:1}});
   if((state?.count??0)>limit)return NextResponse.json({error:"Too many requests. Try again shortly."},{status:429,headers:{"Retry-After":String(Math.ceil(windowMs/1000))}});
   return null;
 }
