@@ -1,0 +1,1 @@
+export {GET} from "../teams/route";export const dynamic="force-dynamic";
