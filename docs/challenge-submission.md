@@ -56,3 +56,18 @@ Be precise: the recorded load test is a GitHub Actions runner against a local Mo
 Describe the work you personally understand and can defend. If AI tools helped implement parts of the code, be transparent about that and explain how you reviewed, tested and corrected the implementation. Be ready to walk through the race condition, transaction boundary, unique index, SSE lifecycle and threat model without relying on a prepared script.
 
 Do not claim that the system is production-deployed, WAF-protected or production-benchmarked until those checks have actually run. A clear, evidence-backed explanation is stronger than inflated claims.
+
+
+## Submission packaging
+
+The repository includes a MIT license, contribution rules, Code of Conduct, vulnerability reporting policy, pull-request template, issue templates, Dependabot configuration, and CodeQL workflow. The test matrix and demo runbook are maintained separately so a reviewer can inspect the technical claims and reproduce the demonstration.
+
+For the submission, link directly to:
+- Repository: https://github.com/PSP-YN/Race-proof-team-formation
+- CI evidence: https://github.com/PSP-YN/Race-proof-team-formation/actions/runs/41517226227
+- Performance report: [docs/performance.md](performance.md)
+- Architecture: [docs/architecture.md](architecture.md)
+- Test matrix: [docs/test-strategy.md](test-strategy.md)
+- Demo script: [docs/demo-runbook.md](demo-runbook.md)
+
+Do not claim the service is deployed or production-benchmarked until the external production gates are complete.
