@@ -12,7 +12,7 @@ export async function POST(req:NextRequest){
   const token=randomBytes(32).toString("base64url"),now=new Date();
   await db.collection("authTokens").deleteMany({userId:user._id,purpose:"verify-email"});
   await db.collection("authTokens").insertOne({userId:user._id,purpose:"verify-email",tokenHash:createHash("sha256").update(token).digest("hex"),createdAt:now,expiresAt:new Date(now.getTime()+86400000)});
-  await fetch("https://api.resend.com/emails",{method:"POST",headers:{"Authorization":"Bearer "+process.env.RESEND_API_KEY,"Content-Type":"application/json"},body:JSON.stringify({from:process.env.EMAIL_FROM,to:[email],subject:"Verify your CrewForge email",text:"Verify your email within 24 hours: "+(process.env.NEXT_PUBLIC_APP_URL||req.nextUrl.origin)+"/verify?token="+token})});
+  try{await fetch("https://api.resend.com/emails",{method:"POST",headers:{"Authorization":"Bearer "+process.env.RESEND_API_KEY,"Content-Type":"application/json"},body:JSON.stringify({from:process.env.EMAIL_FROM,to:[email],subject:"Verify your CrewForge email",text:"Verify your email within 24 hours: "+(process.env.NEXT_PUBLIC_APP_URL||req.nextUrl.origin)+"/verify?token="+token}),signal:AbortSignal.timeout(5000)})}catch{/* Keep the response generic and allow the user to retry. */}
  }
  return NextResponse.json({ok:true,message:"If the account needs verification, an email will be sent."});
 }
