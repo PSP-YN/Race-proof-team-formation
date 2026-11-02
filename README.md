@@ -104,7 +104,7 @@ The latest recorded benchmark is documented in [docs/performance.md](docs/perfor
 - Run deployed smoke tests and k6; record p50/p95/p99, throughput, error rate, database tier and region.
 - Test backup restore and deployment rollback.
 
-See [docs/architecture.md](docs/architecture.md), [docs/performance.md](docs/performance.md) and [docs/production-readiness.md](docs/production-readiness.md).
+See [docs/architecture.md](docs/architecture.md), [docs/performance.md](docs/performance.md), [docs/production-readiness.md](docs/production-readiness.md) and the [challenge submission and interview guide](docs/challenge-submission.md).
 
 ## Challenge demo narrative
 
