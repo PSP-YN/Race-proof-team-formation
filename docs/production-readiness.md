@@ -24,6 +24,10 @@ The restricted `/admin/security` view reads the last seven days of rate-limit te
 
 The repository's `infra/cloudflare/waf.tf` is a reviewed Terraform template, not an active WAF deployment. It deploys Cloudflare's managed ruleset and a conservative custom rule set. Apply only after the production hostname is on a Cloudflare zone and DNS is routed through the proxy. Start custom rules in log mode, inspect false positives, then enable managed challenge/block actions deliberately. Never challenge the SSE endpoint's long-lived requests or API clients without testing.
 
+## Automated smoke checks
+
+Run `BASE_URL=https://your-deployment.example npm run smoke` after deploying. The script checks `/api/health`, the public board JSON shape, and that the SSE endpoint emits its initial connection event. CI runs the same checks against the local production server before the 100-VU k6 test.
+
 ## Release gates
 
 - CI: typecheck, unit/integration tests, dependency audit, production build, race tests and k6 load test.
