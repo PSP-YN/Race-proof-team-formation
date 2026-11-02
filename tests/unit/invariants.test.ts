@@ -1,5 +1,5 @@
 import {describe,it,expect} from "vitest";
-import {scoreTeamMatch} from "@/lib/matching";
+import {scoreTeamMatch} from "../../src/lib/matching";
 
 describe("team formation invariants",()=>{
  it("admits exactly one winner for one remaining seat",()=>{const attempts=50,remainingSeats=1;expect(Math.min(attempts,remainingSeats)).toBe(1)});
