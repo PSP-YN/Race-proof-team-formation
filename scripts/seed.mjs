@@ -33,8 +33,9 @@ try{
  const passwordHash=await bcrypt.hash(demoPassword,12);
  const users=Array.from({length:10000},(_,i)=>({email:"demo+"+String(i+1).padStart(5,"0")+"@crewforge.local",name:"Participant "+String(i+1).padStart(5,"0"),passwordHash,emailVerified:true,sessionVersion:0,createdAt:new Date()}));
  for(let i=0;i<users.length;i+=1000){
-  await db.collection("users").bulkWrite(users.slice(i,i+1000).map(u=>({updateOne:{filter:{email:u.email},update:{$setOnInsert:u,$set:{emailVerified:true,sessionVersion:0}},upsert:true}})),{ordered:false});
+  await db.collection("users").bulkWrite(users.slice(i,i+1000).map(u=>({updateOne:{filter:{email:u.email},update:{$setOnInsert:u},upsert:true}})),{ordered:false});
  }
+ await db.collection("users").updateMany({email:/^demo\\+\\d{5}@crewforge\\.local$/},{$set:{emailVerified:true,sessionVersion:0}});
  const userDocs=await db.collection("users").find({email:/^demo\+\d{5}@crewforge\.local$/},{projection:{_id:1,email:1,name:1}}).sort({email:1}).toArray();
  if(userDocs.length!==10000)throw new Error("Expected 10,000 demo users; found "+userDocs.length);
  const teams=[],memberships=[];
