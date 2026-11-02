@@ -2,8 +2,8 @@
 
 ## Latest CI board benchmark
 
-**Run:** [GitHub Actions run 41517226227](https://github.com/PSP-YN/Race-proof-team-formation/actions/runs/41517226227)  
-**Tested commit:** `a22a220d716c5886a0daa32b43ffd2533c871c01`  
+**Run:** [GitHub Actions run 41520214037](https://github.com/PSP-YN/Race-proof-team-formation/actions/runs/41520214037)  
+**Tested commit:** `1f276126d90df7de14b4a34bd67478aea250e8a1`  
 **Environment:** GitHub-hosted runner, Next.js 16.4.4 production server, MongoDB 7 disposable Docker replica set  
 **Dataset:** 10,000 users, 2,000 teams, 8,000 memberships  
 **Load:** 100 virtual users for 30 seconds  
@@ -13,12 +13,15 @@
 |---|---:|
 | Requests | 3,000 |
 | Throughput | 97.08 requests/second |
-| Average response | 18.85 ms |
-| p95 response | 18.75 ms |
+| Average response | 14.62 ms |
+| Median response | 4.54 ms |
+| p90 response | 10.69 ms |
+| p95 response | 22.26 ms |
+| Maximum response | 472.96 ms |
 | HTTP failures | 0.00% |
 | Board checks | 6,000 / 6,000 passed |
 
-The run summary available for this CI execution does not provide p50, p90, p99, or a full latency histogram. Those values are intentionally not inferred.
+The recorded k6 summary provides median, p90 and p95 but not p99. The maximum is a single observed outlier, not a percentile. p99 is intentionally not inferred.
 
 ## Acceptance thresholds
 
