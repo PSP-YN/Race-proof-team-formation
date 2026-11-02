@@ -1,16 +1,1 @@
-import {MongoClient,Db} from "mongodb";
-const uri=process.env.MONGODB_URI;if(!uri)throw new Error("MONGODB_URI is required");
-const g=globalThis as typeof globalThis&{mongo?:Promise<MongoClient>};
-const clientPromise=g.mongo??new MongoClient(uri,{maxPoolSize:30,minPoolSize:2,retryWrites:true,serverSelectionTimeoutMS:10000}).connect();
-if(process.env.NODE_ENV!=="production")g.mongo=clientPromise;
-export async function mongoClient(){return clientPromise;}
-export async function database():Promise<Db>{const db=(await clientPromise).db();await Promise.all([
-db.collection("users").createIndex({email:1},{unique:true}),
-db.collection("teams").createIndex({hackathonId:1,name:1},{unique:true}),
-db.collection("teams").createIndex({hackathonId:1,status:1,createdAt:-1}),
-db.collection("memberships").createIndex({hackathonId:1,userId:1},{unique:true}),
-db.collection("memberships").createIndex({teamId:1,joinedAt:1}),
-db.collection("invites").createIndex({tokenHash:1},{unique:true}),
-db.collection("invites").createIndex({expiresAt:1},{expireAfterSeconds:0}),
-db.collection("idempotency").createIndex({userId:1,key:1},{unique:true}),
-db.collection("audit").createIndex({hackathonId:1,createdAt:-1})]);return db;}
+import {MongoClient,Db} from "mongodb";const uri=process.env.MONGODB_URI;if(!uri)throw new Error("MONGODB_URI is required");const g=globalThis as typeof globalThis&{mongoPromise?:Promise<MongoClient>;indexesPromise?:Promise<void>};const clientPromise=g.mongoPromise??new MongoClient(uri,{maxPoolSize:40,minPoolSize:2,retryWrites:true,serverSelectionTimeoutMS:10000}).connect();if(process.env.NODE_ENV!=="production")g.mongoPromise=clientPromise;export async function mongoClient(){return clientPromise}export async function database():Promise<Db>{const db=(await clientPromise).db();if(!g.indexesPromise){g.indexesPromise=Promise.all([db.collection("users").createIndex({email:1},{unique:true,name:"users_email_unique"}),db.collection("teams").createIndex({hackathonId:1,name:1},{unique:true,name:"teams_hackathon_name_unique"}),db.collection("teams").createIndex({hackathonId:1,status:1,createdAt:-1},{name:"teams_board"}),db.collection("memberships").createIndex({hackathonId:1,userId:1},{unique:true,name:"one_team_per_hackathon"}),db.collection("memberships").createIndex({teamId:1,joinedAt:1},{name:"team_members_order"}),db.collection("invites").createIndex({tokenHash:1},{unique:true,name:"invite_token_unique"}),db.collection("invites").createIndex({expiresAt:1},{expireAfterSeconds:0,name:"invite_expiry_ttl"}),db.collection("idempotency").createIndex({userId:1,key:1},{unique:true,name:"idempotency_user_key"}),db.collection("audit").createIndex({hackathonId:1,createdAt:-1},{name:"audit_timeline"})]).then(()=>undefined)}await g.indexesPromise;return db}
