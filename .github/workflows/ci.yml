@@ -8,7 +8,6 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 20
-          cache: npm
       - name: Start disposable MongoDB replica set
         run: |
           docker run -d --name crewforge-mongo -p 27017:27017 mongo:7 --replSet rs0 --bind_ip_all
