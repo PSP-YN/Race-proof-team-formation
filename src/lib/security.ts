@@ -3,7 +3,7 @@ import {NextRequest,NextResponse} from "next/server";
 import {database} from "@/lib/db";
 
 export async function guardMutation(req:NextRequest,scope:string,ipLimit=10_000,windowMs=60_000,identity?:string,identityLimit=20):Promise<NextResponse|null>{
- const expected=new URL(process.env.NEXT_PUBLIC_APP_URL||req.nextUrl.origin).origin;
+ const expected=process.env.VERCEL==="1"?req.nextUrl.origin:new URL(process.env.NEXT_PUBLIC_APP_URL||req.nextUrl.origin).origin;
  const origin=req.headers.get("origin"),referer=req.headers.get("referer");
  let supplied:string|null=origin;
  if(!supplied&&referer){try{supplied=new URL(referer).origin}catch{supplied=null}}
