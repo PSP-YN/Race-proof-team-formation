@@ -25,8 +25,8 @@ export async function POST(req:NextRequest){
   if(d.action==="register"){
    const token=randomBytes(32).toString("base64url"),now=new Date();
    await db.collection("authTokens").insertOne({userId:new (await import("mongodb")).ObjectId(user.userId),purpose:"verify-email",tokenHash:createHash("sha256").update(token).digest("hex"),createdAt:now,expiresAt:new Date(now.getTime()+24*60*60*1000)});
-   const sent=await fetch("https://api.resend.com/emails",{method:"POST",headers:{"Authorization":"Bearer "+(process.env.RESEND_API_KEY||""),"Content-Type":"application/json"},body:JSON.stringify({from:process.env.EMAIL_FROM,to:[user.email],subject:"Verify your CrewForge email",text:"Verify your email within 24 hours: "+(process.env.NEXT_PUBLIC_APP_URL||req.nextUrl.origin)+"/verify?token="+token})});
-   if(!process.env.RESEND_API_KEY||!process.env.EMAIL_FROM||!sent.ok)return NextResponse.json({error:"Account created, but email delivery is not configured or failed. Configure the email provider, then request a new verification email."},{status:503});
+   let sentOk=false;try{const sent=await fetch("https://api.resend.com/emails",{method:"POST",headers:{"Authorization":"Bearer "+(process.env.RESEND_API_KEY||""),"Content-Type":"application/json"},body:JSON.stringify({from:process.env.EMAIL_FROM,to:[user.email],subject:"Verify your CrewForge email",text:"Verify your email within 24 hours: "+(process.env.NEXT_PUBLIC_APP_URL||req.nextUrl.origin)+"/verify?token="+token}),signal:AbortSignal.timeout(5000)});sentOk=sent.ok}catch{/* The user can request another verification email after provider failure. */}
+   if(!process.env.RESEND_API_KEY||!process.env.EMAIL_FROM||!sentOk)return NextResponse.json({error:"Account created, but email delivery is not configured or failed. Configure the email provider, then request a new verification email."},{status:503});
    return NextResponse.json({verificationRequired:true},{status:201,headers:{"Cache-Control":"no-store"}});
   }
   await createSession(user);
