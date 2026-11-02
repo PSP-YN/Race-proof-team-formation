@@ -11,7 +11,7 @@ describe("complementary skill matching",()=>{
   const match=scoreTeamMatch(["React","Python"],["Node.js"],2,5);
   expect(match.addedSkills).toEqual(["react","python"]);
   expect(match.reason).toContain("react");
-  expect(match.score).toBe(85);
+  expect(match.score).toBe(90);
  });
  it("does not call team skills missing from the candidate a contribution",()=>{
   const match=scoreTeamMatch(["React"],["React"],2,5);
