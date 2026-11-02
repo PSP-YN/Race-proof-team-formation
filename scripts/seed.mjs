@@ -28,7 +28,9 @@ try{
   ]);
   console.log("Removed existing hackathon demo records:",ids.length,"teams");
  }
- const passwordHash=await bcrypt.hash("CrewForge-Demo-2026!",12);
+ const demoPassword=process.env.SEED_DEMO_PASSWORD;
+ if(!demoPassword||Buffer.byteLength(demoPassword,"utf8")<16||Buffer.byteLength(demoPassword,"utf8")>72)throw new Error("Set SEED_DEMO_PASSWORD to a unique value between 16 and 72 UTF-8 bytes.");
+ const passwordHash=await bcrypt.hash(demoPassword,12);
  const users=Array.from({length:10000},(_,i)=>({email:"demo+"+String(i+1).padStart(5,"0")+"@crewforge.local",name:"Participant "+String(i+1).padStart(5,"0"),passwordHash,createdAt:new Date()}));
  for(let i=0;i<users.length;i+=1000){
   await db.collection("users").bulkWrite(users.slice(i,i+1000).map(u=>({updateOne:{filter:{email:u.email},update:{$setOnInsert:u},upsert:true}})),{ordered:false});
@@ -43,5 +45,5 @@ try{
  }
  await db.collection("teams").insertMany(teams,{ordered:false});
  for(let i=0;i<memberships.length;i+=1000)await db.collection("memberships").insertMany(memberships.slice(i,i+1000),{ordered:false});
- console.log(JSON.stringify({hackathonId,users:10000,teams:2000,memberships:8000,openSeats:2000,demoPassword:"CrewForge-Demo-2026!"},null,2));
+ console.log(JSON.stringify({hackathonId,users:10000,teams:2000,memberships:8000,openSeats:2000},null,2));
 }finally{await client.close();}
