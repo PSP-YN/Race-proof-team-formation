@@ -2,7 +2,7 @@
 
 ## CI board-read benchmark
 
-<badge>PASS</badge> The 100-VU board test passed on the disposable GitHub Actions environment.
+**Result: PASS** The 100-VU board test passed on the disposable GitHub Actions environment.
 
 - Run: https://github.com/PSP-YN/Race-proof-team-formation/actions/runs/41465540797
 - Tested commit: `bdf3d22e740ecb5de475f36c0630fa20308702f7`
