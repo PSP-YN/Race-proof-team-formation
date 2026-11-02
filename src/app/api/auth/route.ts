@@ -1,4 +1,6 @@
 import {NextRequest,NextResponse} from "next/server";
+import {createHash,randomBytes} from "node:crypto";
+import {database} from "@/lib/db";
 import {z} from "zod";
 import {createSession,loginUser,registerUser,getSession} from "@/lib/auth";
 import {cookies} from "next/headers";
@@ -19,12 +21,20 @@ export async function POST(req:NextRequest){
  try{
   if(d.action==="logout"){(await cookies()).delete("crewforge_session");return NextResponse.json({ok:true})}
   const user=d.action==="register"?await registerUser(d.email,d.name,d.password):await loginUser(d.email,d.password);
+  if(d.action==="register"){
+   const token=randomBytes(32).toString("base64url"),now=new Date();
+   await db.collection("authTokens").insertOne({userId:new (await import("mongodb")).ObjectId(user.userId),purpose:"verify-email",tokenHash:createHash("sha256").update(token).digest("hex"),createdAt:now,expiresAt:new Date(now.getTime()+24*60*60*1000)});
+   const sent=await fetch("https://api.resend.com/emails",{method:"POST",headers:{"Authorization":"Bearer "+(process.env.RESEND_API_KEY||""),"Content-Type":"application/json"},body:JSON.stringify({from:process.env.EMAIL_FROM,to:[user.email],subject:"Verify your CrewForge email",text:"Verify your email within 24 hours: "+(process.env.NEXT_PUBLIC_APP_URL||req.nextUrl.origin)+"/verify?token="+token})});
+   if(!process.env.RESEND_API_KEY||!process.env.EMAIL_FROM||!sent.ok)return NextResponse.json({error:"Account created, but email delivery is not configured or failed. Configure the email provider, then request a new verification email."},{status:503});
+   return NextResponse.json({verificationRequired:true},{status:201,headers:{"Cache-Control":"no-store"}});
+  }
   await createSession(user);
-  return NextResponse.json({user},{status:d.action==="register"?201:200,headers:{"Cache-Control":"no-store"}});
+  return NextResponse.json({user},{status:200,headers:{"Cache-Control":"no-store"}});
  }catch(e){
   const m=e instanceof Error?e.message:"";
   if(m.includes("duplicate key"))return NextResponse.json({error:"Email already registered"},{status:409});
   if(m==="Invalid email or password")return NextResponse.json({error:m},{status:401});
+  if(m==="EMAIL_NOT_VERIFIED")return NextResponse.json({error:"Verify your email before signing in."},{status:403,headers:{"Cache-Control":"no-store"}});
   if(m.startsWith("Password")||m==="Enter a valid email"||m.startsWith("Name must"))return NextResponse.json({error:m},{status:400});
   return NextResponse.json({error:"Authentication service is temporarily unavailable"},{status:500});
  }
