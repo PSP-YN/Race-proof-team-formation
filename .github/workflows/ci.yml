@@ -8,11 +8,28 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 20
+          cache: npm
+      - name: Start disposable MongoDB replica set
+        run: |
+          docker run -d --name crewforge-mongo -p 27017:27017 mongo:7 --replSet rs0 --bind_ip_all
+          for i in $(seq 1 40); do
+            if docker exec crewforge-mongo mongosh --quiet --eval 'db.adminCommand({ping:1}).ok' 2>/dev/null | grep -q 1; then break; fi
+            sleep 2
+          done
+          docker exec crewforge-mongo mongosh --quiet --eval 'rs.initiate({_id:"rs0",members:[{_id:0,host:"localhost:27017"}]})'
+          for i in $(seq 1 40); do
+            if docker exec crewforge-mongo mongosh --quiet --eval 'db.hello().isWritablePrimary' 2>/dev/null | grep -q true; then exit 0; fi
+            sleep 2
+          done
+          echo "MongoDB replica set did not become writable" >&2
+          exit 1
       - run: npm install
       - run: npm run typecheck
       - run: npm test
+        env:
+          MONGODB_TEST_URI: mongodb://127.0.0.1:27017/?replicaSet=rs0
       - run: npm run build
         env:
-          MONGODB_URI: mongodb://127.0.0.1:27017/crewforge
+          MONGODB_URI: mongodb://127.0.0.1:27017/crewforge?replicaSet=rs0
           JWT_SECRET: test-secret-at-least-thirty-two-characters-long
           NEXT_PUBLIC_APP_URL: http://localhost:3000
