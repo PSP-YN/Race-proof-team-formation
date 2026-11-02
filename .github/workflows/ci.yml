@@ -37,7 +37,7 @@ jobs:
           docker exec crewforge-mongo mongosh crewforge --quiet --eval '
             const h="hack4hack-crew-hiring-2026";
             const users=db.users.countDocuments({email:/^demo\+\d{5}@crewforge\.local$/});
-            const verified=db.users.countDocuments({email:/^demo\\+\\d{5}@crewforge\\.local$/,emailVerified:true});
+            const verified=db.users.countDocuments({email:/^demo\+\d{5}@crewforge\.local$/,emailVerified:true});
             const teams=db.teams.countDocuments({hackathonId:h});
             const memberships=db.memberships.countDocuments({hackathonId:h});
             printjson({users,verified,teams,memberships});
