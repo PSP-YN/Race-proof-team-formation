@@ -5,7 +5,7 @@
 **Result: PASS** The 100-VU board test passed on the disposable GitHub Actions environment.
 
 - Run: https://github.com/PSP-YN/Race-proof-team-formation/actions/runs/41465540797
-- Tested commit: `bdf3d22e740ecb5de475f36c0630fa20308702f7`
+- Tested commit: `bdf3d22e740ecb5de475f36c0630fa20308702f7` (ancestor of the current PR head; subsequent changes do not modify the board read path).
 - Date: 2026-11-02
 - Runtime: Next.js 16.4.4 production server
 - Database: MongoDB 7 replica set in a disposable Docker container
