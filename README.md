@@ -58,7 +58,7 @@ Run the 100-VU, 30-second board test (requires k6):
 ```bash
 BASE_URL=https://your-deployment.example npm run loadtest
 ```
-The current k6 thresholds are p95 under 200 ms and under 1% HTTP failures. These are acceptance thresholds, not measured results. Capture the actual output against the deployed environment before making a performance claim.
+CI runs the same 100-VU, 30-second test against the seeded fixture. The latest passing CI run measured p95 21.78 ms and 0% HTTP failures on a GitHub-hosted runner; this is not a production-region result. See the performance report and repeat against the deployed URL before making production performance claims.
 
 ## Known gaps before final production submission
 - The UI exposes create/join/leave, leader edit/invite and matching. Invite revocation and richer member/profile management are not yet exposed.
@@ -67,4 +67,4 @@ The current k6 thresholds are p95 under 200 ms and under 1% HTTP failures. These
 - The 100-VU target has not been measured against the final deployment.
 - Deploying requires your MongoDB replica-set URI, JWT secret and exact NEXT_PUBLIC_APP_URL in the hosting environment.
 
-See [docs/architecture.md](docs/architecture.md) for transaction, security and verification details.
+See [docs/architecture.md](docs/architecture.md) for transaction, security and verification details, and [docs/performance.md](docs/performance.md) for the measured 100-VU CI benchmark and its limitations.
