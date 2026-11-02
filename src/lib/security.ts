@@ -3,6 +3,8 @@ import {NextRequest,NextResponse} from "next/server";
 import {Collection} from "mongodb";
 import {database} from "@/lib/db";
 
+// Fixed-window counters are persisted in MongoDB so limits remain effective across serverless instances.
+// Identity keys are hashed before storage; trusted client IP extraction must fail closed in production.
 type RateLimitCounter={_id:string;count:number;expiresAt:Date;scope:string};
 
 async function incrementBucket(collection:Collection<RateLimitCounter>,id:string,expiresAt:Date,scope:string):Promise<number>{
