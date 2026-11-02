@@ -77,6 +77,7 @@ Email registration intentionally does not activate a session until the user veri
 | `POST /api/invites/:token` | Accept invite |
 | `POST /api/matches` | Skill matching |
 | `GET /api/events` | Bounded SSE board stream |
+| `GET /api/health` | Database health and configuration readiness |
 | `GET /api/admin/security` | Allowlisted security telemetry |
 
 ## Tests and scale validation
@@ -87,7 +88,7 @@ npm test
 npm run build
 ```
 
-The MongoDB integration race test requires `MONGODB_TEST_URI` to point to a replica set. It sends 50 concurrent contenders for one final seat and asserts exactly one winner.
+The MongoDB integration race test requires `MONGODB_TEST_URI` to point to a replica set. It sends 50 concurrent contenders for one final seat and asserts exactly one winner. CI also runs `npm run smoke` against the local production server to verify the health endpoint, board response and initial SSE connection before the k6 load test.
 
 The CI workflow provisions a disposable MongoDB replica set, audits dependencies, seeds and verifies 10,000 users / 2,000 teams / 8,000 memberships, runs the typecheck and test suite, builds production assets, and executes a 100-VU / 30-second k6 board test.
 
