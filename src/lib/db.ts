@@ -5,6 +5,8 @@ const g=globalThis as typeof globalThis&{mongoPromise?:Promise<MongoClient>;inde
 const clientPromise=g.mongoPromise??new MongoClient(uri,{maxPoolSize:40,minPoolSize:2,retryWrites:true,serverSelectionTimeoutMS:10000}).connect();
 if(process.env.NODE_ENV!=="production")g.mongoPromise=clientPromise;
 export async function mongoClient(){return clientPromise}
+// Index creation is part of startup correctness: unique indexes protect invariants even when requests race.
+// Cache initialization per runtime instance and clear the promise after failure so a transient DB error can recover.
 export async function database():Promise<Db>{
  const db=(await clientPromise).db();
  if(!g.indexesPromise){
