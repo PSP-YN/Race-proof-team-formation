@@ -11,6 +11,6 @@ export async function POST(req:NextRequest){
  if(!record)return NextResponse.json({error:"Verification link is invalid, expired or already used"},{status:410});
  const user=await db.collection("users").findOneAndUpdate({_id:record.userId},{$set:{emailVerified:true,emailVerifiedAt:now}},{returnDocument:"after"});
  if(!user)return NextResponse.json({error:"Account not found"},{status:404});
- await createSession({userId:user._id.toString(),email:user.email,name:user.name});
+ await createSession({userId:user._id.toString(),email:user.email,name:user.name,sessionVersion:typeof user.sessionVersion==="number"?user.sessionVersion:0});
  return NextResponse.json({ok:true});
 }
