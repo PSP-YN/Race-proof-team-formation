@@ -4,6 +4,7 @@ import bcrypt from "bcryptjs";
 const uri=process.env.MONGODB_URI;
 if(!uri)throw new Error("MONGODB_URI is required");
 if(process.env.NODE_ENV==="production")throw new Error("Refusing to seed when NODE_ENV=production");
+if(process.env.ALLOW_DEMO_SEED!=="true")throw new Error("Demo seeding is disabled. Set ALLOW_DEMO_SEED=true only for an isolated test database.");
 const hackathonId=process.env.SEED_HACKATHON_ID||"hack4hack-crew-hiring-2026";
 const reset=process.argv.includes("--reset");
 const client=new MongoClient(uri,{maxPoolSize:20});
@@ -12,7 +13,7 @@ try{
  await client.connect();
  const db=client.db();
  const demoPassword=process.env.SEED_DEMO_PASSWORD;
- if(!demoPassword||Buffer.byteLength(demoPassword,"utf8")<16||Buffer.byteLength(demoPassword,"utf8")>72)throw new Error("Set SEED_DEMO_PASSWORD to a unique value between 16 and 72 UTF-8 bytes.");
+ if(!demoPassword||Buffer.byteLength(demoPassword,"utf8")<16||Buffer.byteLength(demoPassword,"utf8")>72||/replace-with|ci-only-demo-password/i.test(demoPassword))throw new Error("Set SEED_DEMO_PASSWORD to a unique, non-placeholder value between 16 and 72 UTF-8 bytes.");
  const passwordHash=await bcrypt.hash(demoPassword,12);
  await db.collection("users").createIndex({email:1},{unique:true});
  await db.collection("teams").createIndex({hackathonId:1,name:1},{unique:true});

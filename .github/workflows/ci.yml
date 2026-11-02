@@ -33,7 +33,7 @@ jobs:
         run: npm audit --audit-level=moderate
       - name: Verify 10k participant and 2k team seed
         run: |
-          npm run seed
+          SEED_DEMO_PASSWORD="$(openssl rand -hex 32)" ALLOW_DEMO_SEED=true npm run seed
           docker exec crewforge-mongo mongosh crewforge --quiet --eval '
             const h="hack4hack-crew-hiring-2026";
             const users=db.users.countDocuments({email:/^demo\+\d{5}@crewforge\.local$/});
@@ -44,7 +44,6 @@ jobs:
           '
         env:
           MONGODB_URI: mongodb://127.0.0.1:27017/crewforge?replicaSet=rs0
-          SEED_DEMO_PASSWORD: ci-only-demo-password-2026
       - run: npm run typecheck
       - run: npm test
         env:
