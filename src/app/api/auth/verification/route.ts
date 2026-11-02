@@ -4,8 +4,8 @@ import {database} from "@/lib/db";
 import {guardMutation} from "@/lib/security";
 export const runtime="nodejs";
 export async function POST(req:NextRequest){
- const blocked=await guardMutation(req,"email-verification",10000,60_000,undefined,5,true);if(blocked)return blocked;
  const body=await req.json().catch(()=>null),email=typeof body?.email==="string"?body.email.trim().toLowerCase():"";
+ const blocked=await guardMutation(req,"email-verification",30,60_000,email||undefined,3,true);if(blocked)return blocked;
  if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email))return NextResponse.json({ok:true});
  const db=await database(),user=await db.collection("users").findOne({email,emailVerified:{$ne:true}},{projection:{_id:1,email:1}});
  if(user&&process.env.RESEND_API_KEY&&process.env.EMAIL_FROM){
