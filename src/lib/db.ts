@@ -9,6 +9,7 @@ export async function database():Promise<Db>{
  const db=(await clientPromise).db();
  if(!g.indexesPromise){
   const pending=Promise.all([
+   db.collection("users").updateMany({emailVerified:{$exists:false}},{$set:{emailVerified:false,sessionVersion:0}}),
    db.collection("users").createIndex({email:1},{unique:true}),
    db.collection("teams").createIndex({hackathonId:1,name:1},{unique:true}),
    db.collection("teams").createIndex({hackathonId:1,status:1,createdAt:-1},),
