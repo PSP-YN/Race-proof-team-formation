@@ -18,7 +18,7 @@ Rate-limit violations are recorded as hashed-identity security events with a 30-
 
 ## Abuse monitoring
 
-The restricted `/admin/security` view reads the last seven days of rate-limit telemetry. Set `ADMIN_EMAILS` to a comma-separated allowlist of trusted operator email addresses. Do not grant admin access by client-side flags. Current event coverage is rate-limit exceedances; configure database alerts/monitoring for sustained growth, and extend event coverage for authentication failures and invite abuse before a public launch. Security telemetry is not a SIEM and does not replace provider-level log retention or alerting.
+The restricted `/admin/security` view reads the last seven days of rate-limit telemetry. Set `ADMIN_EMAILS` to a comma-separated allowlist of trusted operator email addresses. Do not grant admin access by client-side flags. Current event coverage includes rate-limit exceedances and failed authentication attempts, with email addresses/IP-derived identities hashed before storage. Configure external alerts for sustained growth and extend event coverage for invitation abuse before a public launch. Security telemetry is not a SIEM and does not replace provider-level log retention or alerting.
 
 ## Cloudflare WAF
 
