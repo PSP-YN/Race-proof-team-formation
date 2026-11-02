@@ -5,8 +5,8 @@ import {createSession} from "@/lib/auth";
 import {guardMutation} from "@/lib/security";
 export const runtime="nodejs";
 export async function POST(req:NextRequest){
- const blocked=await guardMutation(req,"email-verify",10000,60_000,undefined,10,true);if(blocked)return blocked;
  const body=await req.json().catch(()=>null),token=typeof body?.token==="string"?body.token:"";
+ const blocked=await guardMutation(req,"email-verify",30,60_000,token||undefined,10,true);if(blocked)return blocked;
  if(!/^[A-Za-z0-9_-]{40,50}$/.test(token))return NextResponse.json({error:"Invalid or expired verification link"},{status:400});
  const db=await database(),hash=createHash("sha256").update(token).digest("hex"),now=new Date();
  const record=await db.collection("authTokens").findOneAndDelete({tokenHash:hash,purpose:"verify-email",expiresAt:{$gt:now}});
