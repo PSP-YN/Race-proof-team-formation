@@ -9,7 +9,7 @@ export async function guardMutation(req:NextRequest,scope:string,limit=30,window
   let supplied:string|null=origin;
   if(!supplied&&referer){try{supplied=new URL(referer).origin}catch{supplied=null}}
   if(!supplied||supplied!==expected)return NextResponse.json({error:"Cross-origin request rejected"},{status:403});
-  const ip=req.headers.get("x-real-ip")||req.headers.get("x-forwarded-for")?.split(",")[0]?.trim()||"unknown";
+  const forwarded=req.headers.get("x-forwarded-for")?.split(",").map(value=>value.trim()).filter(Boolean)||[];const ip=forwarded.at(-1)||"unknown";
   const key=createHash("sha256").update(scope+":"+ip).digest("hex");
   const bucket=Math.floor(Date.now()/windowMs);
   const id=key+":"+bucket;
