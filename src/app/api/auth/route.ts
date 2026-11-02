@@ -13,7 +13,7 @@ const schema=z.discriminatedUnion("action",[
 export async function POST(req:NextRequest){
  const parsed=schema.safeParse(await req.json().catch(()=>null));
  const identity=parsed.success&&"email" in parsed.data?parsed.data.email:undefined;
- const blocked=await guardMutation(req,"auth",3000,15*60_000,identity,10);if(blocked)return blocked;
+ const blocked=await guardMutation(req,"auth",20000,15*60_000,identity,10);if(blocked)return blocked;
  if(!parsed.success)return NextResponse.json({error:"Please check the submitted fields."},{status:400});
  const d=parsed.data;
  try{
