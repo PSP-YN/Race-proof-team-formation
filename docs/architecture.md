@@ -32,12 +32,12 @@ Invite acceptance checks an opaque random token by its SHA-256 hash, expiry, rev
 - GET /api/board for the board.
 
 ## Security controls
-Mutating API routes require a matching Origin (or Referer origin) against NEXT_PUBLIC_APP_URL and use persistent MongoDB fixed-window rate limits. Authentication is limited to 20 attempts per 15 minutes per source IP; other write routes have route-specific limits. Configure NEXT_PUBLIC_APP_URL to the exact deployed origin. The IP key uses x-real-ip, then the first x-forwarded-for value; confirm the hosting proxy overwrites these headers before relying on IP throttling against hostile clients.
+Mutating API routes require a matching Origin (or Referer origin) against NEXT_PUBLIC_APP_URL and use persistent MongoDB fixed-window rate limits. Authentication is limited to 20 attempts per 15 minutes per source IP; other write routes have route-specific limits. Configure NEXT_PUBLIC_APP_URL to the exact deployed origin. The IP key uses the last x-forwarded-for value, which should be appended by the trusted hosting proxy. Verify the actual header behavior for the selected host; do not expose this endpoint directly behind an untrusted proxy.
 
 This is a baseline, not a substitute for a managed WAF, monitoring, account lockout/abuse detection, email verification, or a security review. Do not expose the MongoDB URI or JWT secret to NEXT_PUBLIC_* variables.
 
 ## Demo data
-Run npm run seed against a disposable database to create 10,000 demo users, 2,000 teams and 8,000 memberships. All seeded users use the demo password shown by the script. The script refuses to run when NODE_ENV=production. Use --reset only on a disposable demo database; it deletes records for the configured hackathon ID before reseeding.
+Run npm run seed against a disposable database to create 10,000 demo users, 2,000 teams and 8,000 memberships. Set a unique SEED_DEMO_PASSWORD (16–72 UTF-8 bytes) before seeding; all seeded accounts use that value. The script refuses to run when NODE_ENV=production. Use --reset only on a disposable demo database; it deletes records for the configured hackathon ID before reseeding.
 
 ## Verification
 - npm run typecheck
