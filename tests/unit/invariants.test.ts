@@ -10,19 +10,21 @@ describe("team size validation",()=>{
 });
 describe("complementary skill matching",()=>{
  it("rewards skills the candidate adds to the team",()=>{
-  const match=scoreTeamMatch(["React","Python"],["Node.js"],2,5);
+  const match=scoreTeamMatch(["React","Python"],["React","Python"],[],2,5);
   expect(match.addedSkills).toEqual(["react","python"]);
   expect(match.reason).toContain("react");
   expect(match.score).toBe(90);
  });
  it("does not call team skills missing from the candidate a contribution",()=>{
-  const match=scoreTeamMatch(["React"],["React"],2,5);
+  const match=scoreTeamMatch(["React"],["React"],["React"],2,5);
   expect(match.addedSkills).toEqual([]);
-  expect(match.reason).not.toContain("adds");
+  expect(match.reason).not.toContain("fills");
  });
+ it("does not reward unrelated skills that do not fill a listed need",()=>{const match=scoreTeamMatch(["Go"],["React"],[],2,5);expect(match.addedSkills).toEqual([]);expect(match.score).toBe(15)});
+ it("does not reward skills already represented by team members",()=>{const match=scoreTeamMatch(["React"],["React"],["React"],2,5);expect(match.addedSkills).toEqual([])});
  it("increases the score when the team has more open seats",()=>{
-  const full=scoreTeamMatch(["Python"],["React"],5,5);
-  const open=scoreTeamMatch(["Python"],["React"],2,5);
+  const full=scoreTeamMatch(["Python"],["React"],[],5,5);
+  const open=scoreTeamMatch(["Python"],["React"],[],2,5);
   expect(open.score).toBeGreaterThan(full.score);
  });
 });
