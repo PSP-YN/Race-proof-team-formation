@@ -3,14 +3,20 @@ on:
   push:
     branches: [main]
   pull_request:
+permissions:
+  contents: read
+
 concurrency:
   group: crewforge-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: true
 jobs:
   verify:
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     steps:
       - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
       - uses: actions/setup-node@v4
         with:
           node-version: 20
@@ -28,7 +34,15 @@ jobs:
           done
           echo "MongoDB replica set did not become writable" >&2
           exit 1
-      - run: npm install
+      - name: Install dependencies and resolve lockfile
+        run: npm install --no-audit --no-fund
+      - name: Export generated lockfile for one-time repository bootstrap
+        uses: actions/upload-artifact@v4
+        with:
+          name: crewforge-package-lock
+          path: package-lock.json
+          if-no-files-found: error
+          retention-days: 1
       - name: Enforce dependency audit
         run: npm audit --audit-level=moderate
       - name: Verify 10k participant and 2k team seed
