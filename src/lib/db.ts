@@ -3,6 +3,7 @@ const uri=process.env.MONGODB_URI;if(!uri)throw new Error("MONGODB_URI is requir
 const g=globalThis as typeof globalThis&{mongo?:Promise<MongoClient>};
 const clientPromise=g.mongo??new MongoClient(uri,{maxPoolSize:30,minPoolSize:2,retryWrites:true,serverSelectionTimeoutMS:10000}).connect();
 if(process.env.NODE_ENV!=="production")g.mongo=clientPromise;
+export async function mongoClient(){return clientPromise;}
 export async function database():Promise<Db>{const db=(await clientPromise).db();await Promise.all([
 db.collection("users").createIndex({email:1},{unique:true}),
 db.collection("teams").createIndex({hackathonId:1,name:1},{unique:true}),
