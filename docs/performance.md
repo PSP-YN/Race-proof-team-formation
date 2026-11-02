@@ -4,24 +4,24 @@
 
 **Result: PASS** The 100-VU board test passed on the disposable GitHub Actions environment.
 
-- Latest run: https://github.com/PSP-YN/Race-proof-team-formation/actions/runs/41501929131
-- Tested commit: `c686c97557eb8cd15df2112c5190cf2fc021e807`
+- Latest run: https://github.com/PSP-YN/Race-proof-team-formation/actions/runs/41516567113
+- Tested commit: `5fc57ca299394f21787da2fdda0eb19f695edbf8`
 - Date: 2026-11-02
 - Runtime: Next.js 16.4.4 production server
 - Database: MongoDB 7 replica set in a disposable Docker container
 - Dataset: 10,000 users, 2,000 teams, 8,000 memberships; board endpoint returns at most 200 teams
-- Load: 100 virtual users for 30 seconds
+- Load: 100 virtual users for 30 seconds; smoke checks for database health, board JSON and initial SSE connection ran before the load test
 - k6: 2.3.0
 
 | Metric | Latest run |
 |---|---:|
 | Requests | 3,000 |
-| Throughput | 97.19 requests/second |
-| Average response | 18.24 ms |
-| Median response | 4.92 ms |
-| p90 | 13.77 ms |
-| p95 | 54.71 ms |
-| Maximum | 567.84 ms |
+| Throughput | 97.23 requests/second |
+| Average response | 17.63 ms |
+| Median response | 5.64 ms |
+| p90 | 10.31 ms |
+| p95 | 18.32 ms |
+| Maximum | 593.67 ms |
 | HTTP failures | 0.00% |
 | Board status / JSON checks | 100% passed (6,000/6,000) |
 
