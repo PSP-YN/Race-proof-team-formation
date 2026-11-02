@@ -38,3 +38,12 @@ export async function guardMutation(req:NextRequest,scope:string,ipLimit=10_000,
  }
  return null;
 }
+
+export async function guardEventStream(req:NextRequest):Promise<NextResponse|null>{
+ const ip=process.env.VERCEL==="1"?req.headers.get("x-real-ip")?.trim():process.env.TRUSTED_CLIENT_IP_HEADER?req.headers.get(process.env.TRUSTED_CLIENT_IP_HEADER)?.trim():process.env.NODE_ENV==="development"?"local-development":null;
+ if(!ip)return NextResponse.json({error:"Rate limiting is not configured for this deployment"},{status:503});
+ const db=await database(),windowMs=60_000,bucket=Math.floor(Date.now()/windowMs),limit=30;
+ const identity="event-stream:ip:"+ip,key=createHash("sha256").update(identity).digest("hex"),count=await incrementBucket(db.collection<RateLimitCounter>("rateLimits"),key+":"+bucket,new Date((bucket+2)*windowMs),"event-stream");
+ if(count>limit){const identityHash=createHash("sha256").update(identity).digest("hex");try{await db.collection("securityEvents").insertOne({scope:"event-stream",identityHash,event:"RATE_LIMIT_EXCEEDED",createdAt:new Date(),metadata:{limit,windowMs}})}catch{/* Telemetry must not affect stream protection. */}return NextResponse.json({error:"Too many realtime connections. Try again shortly."},{status:429,headers:{"Retry-After":String(Math.max(1,Math.ceil(((bucket+1)*windowMs-Date.now())/1000)))}})}
+ return null;
+}
