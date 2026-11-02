@@ -61,7 +61,7 @@ BASE_URL=https://your-deployment.example npm run loadtest
 The current k6 thresholds are p95 under 200 ms and under 1% HTTP failures. These are acceptance thresholds, not measured results. Capture the actual output against the deployed environment before making a performance claim.
 
 ## Known gaps before final production submission
-- The UI does not yet expose every leader management endpoint or the matching suggestions endpoint; the APIs exist.
+- The UI exposes create/join/leave, leader edit/invite and matching. Invite revocation and richer member/profile management are not yet exposed.
 - The board currently refreshes by five-second polling rather than SSE/WebSocket.
 - Email verification, account recovery, abuse monitoring and a managed WAF are not implemented.
 - The 100-VU target has not been measured against the final deployment.
