@@ -17,7 +17,7 @@ export async function guardMutation(req:NextRequest,scope:string,ipLimit=10_000,
  for(const counter of counters){
   const key=createHash("sha256").update(counter.value).digest("hex"),id=key+":"+bucket;
   const state=await rateLimits.findOneAndUpdate({_id:id},{$inc:{count:1},$setOnInsert:{expiresAt:new Date((bucket+2)*windowMs),scope}},{upsert:true,returnDocument:"after",projection:{count:1}});
-  if((state?.count??0)>counter.limit)return NextResponse.json({error:"Too many requests. Try again shortly."},{status:429,headers:{"Retry-After":String(Math.ceil(windowMs/1000))}});
+  if((state?.count??0)>counter.limit)return NextResponse.json({error:"Too many requests. Try again shortly."},{status:429,headers:{"Retry-After":String(Math.max(1,Math.ceil(((bucket+1)*windowMs-Date.now())/1000)))}});
  }
  return null;
 }
