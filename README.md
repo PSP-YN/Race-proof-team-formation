@@ -3,7 +3,8 @@
 CrewForge helps hackathon participants discover teams, create crews and join without overfilling teams or assigning one participant to multiple teams.
 
 ## Stack
-- Next.js App Router, React 19 and TypeScript
+- Next.js 16 App Router, React 19 and TypeScript
+- Zod 4 input validation and Vitest 4 test runner
 - MongoDB replica set (MongoDB Atlas or local replica set)
 - bcrypt password hashing, signed HttpOnly sessions and Zod validation
 - Vitest unit/integration tests, MongoDB concurrency test and k6 load script
