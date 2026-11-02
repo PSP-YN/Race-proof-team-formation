@@ -44,7 +44,7 @@ Seed a disposable database with 10,000 participants, 2,000 teams and 8,000 membe
 ```bash
 npm run seed
 ```
-The seeded demo password for every seeded account is `CrewForge-Demo-2026!`. Never use seeded credentials in production. To replace only the configured hackathon's demo data, pass `--reset` to the script. The script refuses to run with NODE_ENV=production.
+Set a unique `SEED_DEMO_PASSWORD` (16–72 UTF-8 bytes) before running the script; every seeded account shares that password. Never use seeded credentials in production. To replace only the configured hackathon's demo data, pass `--reset` to the script. The script refuses to run with NODE_ENV=production.
 
 Run validation:
 ```bash
