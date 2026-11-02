@@ -31,7 +31,7 @@ Invite acceptance checks an opaque random token by its SHA-256 hash, expiry, rev
 - PATCH /api/teams/:teamId for leader-only settings.
 - POST /api/teams/:teamId/invites; GET/DELETE /api/teams/:teamId/invites; POST /api/invites/:token.
 - POST /api/auth/verify, /api/auth/verification, /api/auth/recovery and /api/auth/reset.
-- GET /api/events for bounded SSE board updates; GET /api/admin/security for allowlisted telemetry.
+- GET /api/events for bounded SSE board updates; GET /api/admin/security for allowlisted telemetry; GET /api/health for service readiness.
 - POST /api/matches for skill-complementarity recommendations.
 - GET /api/board for the board.
 
@@ -50,4 +50,4 @@ Run npm run seed against a disposable database to create 10,000 demo users, 2,00
 - npm run seed (disposable database only)
 - BASE_URL=https://your-deployment.example npm run loadtest (requires k6)
 
-The integration race test sends 50 concurrent contenders for one remaining seat and asserts exactly one membership wins. CI seeds and verifies the 10k/2k/8k dataset, runs the race test, and executes the 100-VU, 30-second k6 board test. The latest recorded CI result is documented in docs/performance.md (p95 54.71 ms with 0% HTTP failures on the GitHub-hosted runner). See docs/performance.md. This is not a deployed-region measurement; repeat against the production URL.
+The integration race test sends 50 concurrent contenders for one remaining seat and asserts exactly one membership wins. CI also executes scripts/smoke.mjs against the production Next.js server to verify the health route, public board JSON and initial SSE connection before running k6. CI seeds and verifies the 10k/2k/8k dataset, runs the race test, and executes the 100-VU, 30-second k6 board test. The latest recorded CI result is documented in docs/performance.md (p95 54.71 ms with 0% HTTP failures on the GitHub-hosted runner). See docs/performance.md. This is not a deployed-region measurement; repeat against the production URL.
