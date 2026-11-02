@@ -21,7 +21,14 @@ export async function GET(req:NextRequest){
    try{
     const db=await database();
     const pipeline=[
-     {$match:{"fullDocument.hackathonId":hackathonId,operationType:{$in:["insert","update","replace","delete"]}}},
+     {$match:{
+      "ns.coll":{$in:["teams","memberships"]},
+      $or:[
+       {"fullDocument.hackathonId":hackathonId},
+       // MongoDB delete events omit fullDocument; invalidate boards on deletes as well.
+       {operationType:"delete"}
+      ]
+     }},
     ];
     changeStream=db.watch(pipeline,{fullDocument:"updateLookup",maxAwaitTimeMS:3000});
     send("connected",{at:Date.now()});
