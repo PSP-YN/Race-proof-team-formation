@@ -9,16 +9,16 @@ export async function database():Promise<Db>{
  const db=(await clientPromise).db();
  if(!g.indexesPromise){
   const pending=Promise.all([
-   db.collection("users").createIndex({email:1},{unique:true,name:"users_email_unique"}),
-   db.collection("teams").createIndex({hackathonId:1,name:1},{unique:true,name:"teams_hackathon_name_unique"}),
+   db.collection("users").createIndex({email:1},{unique:true}),
+   db.collection("teams").createIndex({hackathonId:1,name:1},{unique:true}),
    db.collection("teams").createIndex({hackathonId:1,status:1,createdAt:-1},{name:"teams_board"}),
-   db.collection("memberships").createIndex({hackathonId:1,userId:1},{unique:true,name:"one_team_per_hackathon"}),
+   db.collection("memberships").createIndex({hackathonId:1,userId:1},{unique:true}),
    db.collection("memberships").createIndex({teamId:1,joinedAt:1},{name:"team_members_order"}),
-   db.collection("invites").createIndex({tokenHash:1},{unique:true,name:"invite_token_unique"}),
-   db.collection("invites").createIndex({expiresAt:1},{expireAfterSeconds:0,name:"invite_expiry_ttl"}),
-   db.collection("idempotency").createIndex({userId:1,key:1},{unique:true,name:"idempotency_user_key"}),
+   db.collection("invites").createIndex({tokenHash:1},{unique:true}),
+   db.collection("invites").createIndex({expiresAt:1},{expireAfterSeconds:0}),
+   db.collection("idempotency").createIndex({userId:1,key:1},{unique:true}),
    db.collection("audit").createIndex({hackathonId:1,createdAt:-1},{name:"audit_timeline"}),
-   db.collection("rateLimits").createIndex({expiresAt:1},{expireAfterSeconds:0,name:"rate_limit_expiry_ttl"})
+   db.collection("rateLimits").createIndex({expiresAt:1},{expireAfterSeconds:0})
   ]).then(()=>undefined);
   g.indexesPromise=pending.catch(error=>{g.indexesPromise=undefined;throw error});
  }
