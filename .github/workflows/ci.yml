@@ -10,48 +10,6 @@ concurrency:
   group: crewforge-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: true
 jobs:
-  bootstrap-lockfile:
-    if: github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository && github.actor == 'PSP-YN'
-    runs-on: ubuntu-latest
-    timeout-minutes: 10
-    permissions:
-      contents: write
-    steps:
-      - name: Checkout PR branch
-        uses: actions/checkout@v4
-        with:
-          ref: ${{ github.event.pull_request.head.ref }}
-          persist-credentials: false
-      - name: Set up Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: 20
-      - name: Generate lockfile without running package scripts
-        id: lockfile
-        run: |
-          if [ -f package-lock.json ]; then
-            echo "created=false" >> "$GITHUB_OUTPUT"
-          else
-            npm install --package-lock-only --ignore-scripts --no-audit --no-fund
-            echo "created=true" >> "$GITHUB_OUTPUT"
-          fi
-      - name: Commit deterministic npm lockfile
-        if: steps.lockfile.outputs.created == 'true'
-        uses: actions/github-script@v7
-        with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          script: |
-            const fs = require("fs");
-            const content = fs.readFileSync("package-lock.json");
-            await github.rest.repos.createOrUpdateFileContents({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              path: "package-lock.json",
-              message: "chore: add deterministic npm lockfile",
-              content: content.toString("base64"),
-              branch: context.payload.pull_request.head.ref
-            });
-
   verify:
     runs-on: ubuntu-latest
     timeout-minutes: 30
@@ -61,7 +19,7 @@ jobs:
           persist-credentials: false
       - uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 22
       - name: Start disposable MongoDB replica set
         run: |
           docker run -d --name crewforge-mongo -p 27017:27017 mongo:7 --replSet rs0 --bind_ip_all
@@ -76,8 +34,8 @@ jobs:
           done
           echo "MongoDB replica set did not become writable" >&2
           exit 1
-      - name: Install dependencies and resolve lockfile
-        run: npm install --no-audit --no-fund
+      - name: Install locked dependencies
+        run: npm ci --no-audit --no-fund
       - name: Enforce dependency audit
         run: npm audit --audit-level=moderate
       - name: Verify 10k participant and 2k team seed
