@@ -2,8 +2,6 @@
 
 ## Latest CI board benchmark
 
-<badge>CI pass</badge>
-
 **Run:** [GitHub Actions run 41517226227](https://github.com/PSP-YN/Race-proof-team-formation/actions/runs/41517226227)  
 **Tested commit:** `a22a220d716c5886a0daa32b43ffd2533c871c01`  
 **Environment:** GitHub-hosted runner, Next.js 16.4.4 production server, MongoDB 7 disposable Docker replica set  
