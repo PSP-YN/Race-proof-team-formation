@@ -2,8 +2,8 @@
 
 ## Latest CI board benchmark
 
-**Run:** [GitHub Actions run 41520214037](https://github.com/PSP-YN/Race-proof-team-formation/actions/runs/41520214037)  
-**Tested commit:** `1f276126d90df7de14b4a34bd67478aea250e8a1`  
+**Run:** [GitHub Actions run 41521580639](https://github.com/PSP-YN/Race-proof-team-formation/actions/runs/41520214037)  
+**Tested commit:** `67ea884157792bdb83e1dfc96615a0cec9899cc4`  
 **Environment:** GitHub-hosted runner, Next.js 16.4.4 production server, MongoDB 7 disposable Docker replica set  
 **Dataset:** 10,000 users, 2,000 teams, 8,000 memberships  
 **Load:** 100 virtual users for 30 seconds  
@@ -13,11 +13,11 @@
 |---|---:|
 | Requests | 3,000 |
 | Throughput | 97.08 requests/second |
-| Average response | 14.62 ms |
-| Median response | 4.54 ms |
-| p90 response | 10.69 ms |
-| p95 response | 22.26 ms |
-| Maximum response | 472.96 ms |
+| Average response | 15.36 ms |
+| Median response | 4.91 ms |
+| p90 response | 8.06 ms |
+| p95 response | 11.23 ms |
+| Maximum response | 532.80 ms |
 | HTTP failures | 0.00% |
 | Board checks | 6,000 / 6,000 passed |
 
