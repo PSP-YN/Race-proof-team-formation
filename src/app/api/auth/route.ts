@@ -18,6 +18,7 @@ export async function POST(req:NextRequest){
  const blocked=await guardMutation(req,"auth",15000,15*60_000,identity,10,true);if(blocked)return blocked;
  if(!parsed.success)return NextResponse.json({error:"Please check the submitted fields."},{status:400});
  const d=parsed.data;
+ const db=await database();
  try{
   if(d.action==="logout"){(await cookies()).delete("crewforge_session");return NextResponse.json({ok:true})}
   const user=d.action==="register"?await registerUser(d.email,d.name,d.password):await loginUser(d.email,d.password);
