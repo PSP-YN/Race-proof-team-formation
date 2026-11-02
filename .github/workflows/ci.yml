@@ -69,6 +69,7 @@ jobs:
             sleep 2
           done
           if [ "$ready" -ne 1 ]; then cat /tmp/crewforge-next.log; exit 1; fi
+          BASE_URL=http://127.0.0.1:3000 npm run smoke
           BASE_URL=http://127.0.0.1:3000 npm run loadtest
         env:
           MONGODB_URI: mongodb://127.0.0.1:27017/crewforge?replicaSet=rs0
