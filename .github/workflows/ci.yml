@@ -23,10 +23,8 @@ jobs:
           echo "MongoDB replica set did not become writable" >&2
           exit 1
       - run: npm install
-      - name: Inspect dependency advisories
-        run: |
-          npm audit --json > /tmp/npm-audit.json || true
-          node -e 'const a=require("/tmp/npm-audit.json"); for (const [n,v] of Object.entries(a.vulnerabilities||{})) console.log(JSON.stringify({name:n,severity:v.severity,range:v.range,fixAvailable:v.fixAvailable,via:v.via.map(x=>typeof x==="string"?x:{title:x.title,url:x.url})}))'
+      - name: Enforce dependency audit
+        run: npm audit --audit-level=moderate
       - run: npm run typecheck
       - run: npm test
         env:
