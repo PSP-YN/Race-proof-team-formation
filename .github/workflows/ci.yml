@@ -30,7 +30,7 @@ jobs:
           npm run seed
           docker exec crewforge-mongo mongosh crewforge --quiet --eval '
             const h="hack4hack-crew-hiring-2026";
-            const users=db.users.countDocuments({email:/^demo\\+\\d{5}@crewforge\\.local$/});
+            const users=db.users.countDocuments({email:/^demo\+\\d{5}@crewforge\.local$/});
             const teams=db.teams.countDocuments({hackathonId:h});
             const memberships=db.memberships.countDocuments({hackathonId:h});
             printjson({users,teams,memberships});
