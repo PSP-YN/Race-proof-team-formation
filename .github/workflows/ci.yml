@@ -57,10 +57,12 @@ jobs:
       - name: Run 100-VU board load test
         run: |
           npm start > /tmp/crewforge-next.log 2>&1 &
+          ready=0
           for i in $(seq 1 40); do
-            if curl -fsS "http://127.0.0.1:3000/api/board?hackathonId=hack4hack-crew-hiring-2026" >/dev/null; then break; fi
+            if curl -fsS "http://127.0.0.1:3000/api/board?hackathonId=hack4hack-crew-hiring-2026" >/dev/null; then ready=1; break; fi
             sleep 2
           done
+          if [ "$ready" -ne 1 ]; then cat /tmp/crewforge-next.log; exit 1; fi
           BASE_URL=http://127.0.0.1:3000 npm run loadtest
         env:
           MONGODB_URI: mongodb://127.0.0.1:27017/crewforge?replicaSet=rs0
