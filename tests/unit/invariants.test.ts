@@ -1,10 +1,12 @@
 import {describe,it,expect} from "vitest";
 import {scoreTeamMatch} from "../../src/lib/matching";
+import {isValidTeamSize} from "../../src/lib/team-invariants";
 
-describe("team formation invariants",()=>{
- it("admits exactly one winner for one remaining seat",()=>{const attempts=50,remainingSeats=1;expect(Math.min(attempts,remainingSeats)).toBe(1)});
- it("does not allow min size above max size",()=>{expect(6<=5).toBe(false)});
- it("limits teams to ten participants",()=>{expect(10).toBeLessThanOrEqual(10)});
+describe("team size validation",()=>{
+ it("accepts a valid minimum and maximum",()=>{expect(isValidTeamSize(2,5)).toBe(true)});
+ it("rejects a minimum greater than the maximum",()=>{expect(isValidTeamSize(6,5)).toBe(false)});
+ it("rejects a team size below two",()=>{expect(isValidTeamSize(1,5)).toBe(false)});
+ it("rejects a maximum above ten",()=>{expect(isValidTeamSize(2,11)).toBe(false)});
 });
 describe("complementary skill matching",()=>{
  it("rewards skills the candidate adds to the team",()=>{
