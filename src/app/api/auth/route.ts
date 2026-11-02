@@ -34,8 +34,7 @@ export async function POST(req:NextRequest){
  }catch(e){
   const m=e instanceof Error?e.message:"";
   if(m.includes("duplicate key"))return NextResponse.json({error:"Email already registered"},{status:409});
-  if(m==="Invalid email or password")return NextResponse.json({error:m},{status:401});
-  if(m==="EMAIL_NOT_VERIFIED")return NextResponse.json({error:"Verify your email before signing in."},{status:403,headers:{"Cache-Control":"no-store"}});
+  if(d.action==="login"&&(m==="Invalid email or password"||m==="EMAIL_NOT_VERIFIED")){try{await db.collection("securityEvents").insertOne({scope:"auth",identityHash:createHash("sha256").update(d.email.trim().toLowerCase()).digest("hex"),event:"AUTH_FAILURE",createdAt:new Date()})}catch{/* Do not leak telemetry failures into authentication responses. */}return NextResponse.json({error:"Invalid email or password. If you recently registered, verify your email first."},{status:401,headers:{"Cache-Control":"no-store"}});}
   if(m.startsWith("Password")||m==="Enter a valid email"||m.startsWith("Name must"))return NextResponse.json({error:m},{status:400});
   return NextResponse.json({error:"Authentication service is temporarily unavailable"},{status:500});
  }
