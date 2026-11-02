@@ -1,38 +1,60 @@
 # Performance test record
 
-## CI board-read benchmark
+## Latest CI board benchmark
 
-**Result: PASS** The 100-VU board test passed on the disposable GitHub Actions environment.
+<badge>CI pass</badge>
 
-- Latest run: https://github.com/PSP-YN/Race-proof-team-formation/actions/runs/41516567113
-- Tested commit: `5fc57ca299394f21787da2fdda0eb19f695edbf8`
-- Date: 2026-11-02
-- Runtime: Next.js 16.4.4 production server
-- Database: MongoDB 7 replica set in a disposable Docker container
-- Dataset: 10,000 users, 2,000 teams, 8,000 memberships; board endpoint returns at most 200 teams
-- Load: 100 virtual users for 30 seconds; smoke checks for database health, board JSON and initial SSE connection ran before the load test
-- k6: 2.3.0
+**Run:** [GitHub Actions run 41517226227](https://github.com/PSP-YN/Race-proof-team-formation/actions/runs/41517226227)  
+**Tested commit:** `a22a220d716c5886a0daa32b43ffd2533c871c01`  
+**Environment:** GitHub-hosted runner, Next.js 16.4.4 production server, MongoDB 7 disposable Docker replica set  
+**Dataset:** 10,000 users, 2,000 teams, 8,000 memberships  
+**Load:** 100 virtual users for 30 seconds  
+**Smoke checks:** database health, board JSON, initial SSE connection
 
-| Metric | Latest run |
+| Metric | Result |
 |---|---:|
 | Requests | 3,000 |
-| Throughput | 97.23 requests/second |
-| Average response | 17.63 ms |
-| Median response | 5.64 ms |
-| p90 | 10.31 ms |
-| p95 | 18.32 ms |
-| Maximum | 593.67 ms |
+| Throughput | 97.08 requests/second |
+| Average response | 18.85 ms |
+| p95 response | 18.75 ms |
 | HTTP failures | 0.00% |
-| Board status / JSON checks | 100% passed (6,000/6,000) |
+| Board checks | 6,000 / 6,000 passed |
 
-Acceptance thresholds: p95 below 200 ms and HTTP failure rate below 1%. Both passed.
+The run summary available for this CI execution does not provide p50, p90, p99, or a full latency histogram. Those values are intentionally not inferred.
+
+## Acceptance thresholds
+
+The k6 scenario enforces a p95 response-time threshold below 200 ms and an HTTP failure rate below 1%. Both thresholds passed in the recorded CI run.
 
 ## Previous benchmark
 
-The earlier CI benchmark on commit `bdf3d22e740ecb5de475f36c0630fa20308702f7` measured p95 at 21.78 ms, 2,998 requests, 96.69 requests/second and 0% HTTP failures. The current run above supersedes it as the latest measurement.
+The earlier CI run on commit `5fc57ca299394f21787da2fdda0eb19f695edbf8` reported 3,000 requests, 97.23 requests/second, 17.63 ms average response, 18.32 ms p95, and 0% HTTP failures. The newer run above supersedes it.
+
+## Optimization history
+
+The initial board implementation performed repeated membership lookups across teams. The board endpoint was optimized to retrieve the signed-in participant's membership once and return compact membership state with each team. The subsequent synthetic CI runs showed materially lower p95 latency than the initial 516.24 ms measurement. Do not attribute the entire difference to one change without a controlled benchmark; runner and dataset conditions can also affect results.
 
 ## Interpretation and limitations
 
-These are repeatable CI benchmarks against a local MongoDB replica set and GitHub-hosted runners. They demonstrate the board endpoint's behavior under the stated synthetic load and seeded dataset. They are not measurements of Vercel, MongoDB Atlas network latency, a production region, or end-to-end browser rendering. Repeat the same test against the deployed URL before making production performance claims.
+These results show the board endpoint's behavior under the stated synthetic CI workload. They do not measure:
 
-The initial benchmark before the membership-query optimization measured p95 at 516.24 ms. The board endpoint was changed to retrieve only the signed-in user's membership once and return a compact membership flag instead of joining all members for every team. Subsequent CI runs passed with zero failed requests.
+- Vercel cold starts or production serverless execution
+- Network latency between Vercel and MongoDB Atlas
+- Atlas cluster tier, region, connection pool contention, or change-stream capacity
+- Browser rendering, real user journeys, or email delivery
+- Production traffic distribution, burst patterns, or long-duration soak behavior
+
+The reported 97.08 requests/second is throughput under this specific test, not a capacity guarantee. The benchmark does not establish a production SLA.
+
+## Required deployed benchmark
+
+After deployment, run:
+
+```bash
+BASE_URL=https://your-production-domain.example npm run smoke
+BASE_URL=https://your-production-domain.example npm run loadtest
+```
+
+Record the exact commit SHA, deployment region/runtime, MongoDB Atlas tier and region, dataset size, VUs, duration, p50/p95/p99, throughput, error rate, and any cold-start behavior. Run a short smoke test first, then staged load increases. Do not begin with an unbounded stress test against production.
+
+A production release should also include a soak test, a burst test, and database connection/CPU monitoring. Set explicit operational budgets based on the selected hosting and database plans rather than copying the CI threshold blindly.
