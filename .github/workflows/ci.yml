@@ -37,10 +37,11 @@ jobs:
           docker exec crewforge-mongo mongosh crewforge --quiet --eval '
             const h="hack4hack-crew-hiring-2026";
             const users=db.users.countDocuments({email:/^demo\+\d{5}@crewforge\.local$/});
+            const verified=db.users.countDocuments({email:/^demo\+\d{5}@crewforge\.local$/,emailVerified:true});
             const teams=db.teams.countDocuments({hackathonId:h});
             const memberships=db.memberships.countDocuments({hackathonId:h});
-            printjson({users,teams,memberships});
-            if(users!==10000||teams!==2000||memberships!==8000) quit(1);
+            printjson({users,verified,teams,memberships});
+            if(users!==10000||verified!==10000||teams!==2000||memberships!==8000) quit(1);
           '
         env:
           MONGODB_URI: mongodb://127.0.0.1:27017/crewforge?replicaSet=rs0
