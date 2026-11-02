@@ -16,6 +16,10 @@ The board uses MongoDB change streams over the teams, memberships and invite col
 
 Rate-limit violations are recorded as hashed-identity security events with a 30-day TTL. Do not store raw IP addresses, passwords, invite tokens, reset tokens, or email contents in telemetry. Alert on sustained auth failures, invite creation/revocation spikes, and repeated rate-limit violations. Review audit events separately from security telemetry.
 
+## Abuse monitoring
+
+The restricted `/admin/security` view reads the last seven days of rate-limit telemetry. Set `ADMIN_EMAILS` to a comma-separated allowlist of trusted operator email addresses. Do not grant admin access by client-side flags. Current event coverage is rate-limit exceedances; configure database alerts/monitoring for sustained growth, and extend event coverage for authentication failures and invite abuse before a public launch. Security telemetry is not a SIEM and does not replace provider-level log retention or alerting.
+
 ## Cloudflare WAF
 
 The repository's `infra/cloudflare/waf.tf` is a reviewed Terraform template, not an active WAF deployment. It deploys Cloudflare's managed ruleset and a conservative custom rule set. Apply only after the production hostname is on a Cloudflare zone and DNS is routed through the proxy. Start custom rules in log mode, inspect false positives, then enable managed challenge/block actions deliberately. Never challenge the SSE endpoint's long-lived requests or API clients without testing.
