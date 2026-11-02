@@ -11,6 +11,9 @@ const skills=["Frontend","Backend","React","Node.js","Python","Machine Learning"
 try{
  await client.connect();
  const db=client.db();
+ const demoPassword=process.env.SEED_DEMO_PASSWORD;
+ if(!demoPassword||Buffer.byteLength(demoPassword,"utf8")<16||Buffer.byteLength(demoPassword,"utf8")>72)throw new Error("Set SEED_DEMO_PASSWORD to a unique value between 16 and 72 UTF-8 bytes.");
+ const passwordHash=await bcrypt.hash(demoPassword,12);
  await db.collection("users").createIndex({email:1},{unique:true});
  await db.collection("teams").createIndex({hackathonId:1,name:1},{unique:true});
  await db.collection("memberships").createIndex({hackathonId:1,userId:1},{unique:true});
@@ -28,9 +31,6 @@ try{
   ]);
   console.log("Removed existing hackathon demo records:",ids.length,"teams");
  }
- const demoPassword=process.env.SEED_DEMO_PASSWORD;
- if(!demoPassword||Buffer.byteLength(demoPassword,"utf8")<16||Buffer.byteLength(demoPassword,"utf8")>72)throw new Error("Set SEED_DEMO_PASSWORD to a unique value between 16 and 72 UTF-8 bytes.");
- const passwordHash=await bcrypt.hash(demoPassword,12);
  const users=Array.from({length:10000},(_,i)=>({email:"demo+"+String(i+1).padStart(5,"0")+"@crewforge.local",name:"Participant "+String(i+1).padStart(5,"0"),passwordHash,createdAt:new Date()}));
  for(let i=0;i<users.length;i+=1000){
   await db.collection("users").bulkWrite(users.slice(i,i+1000).map(u=>({updateOne:{filter:{email:u.email},update:{$setOnInsert:u},upsert:true}})),{ordered:false});
