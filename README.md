@@ -29,7 +29,7 @@ CrewForge treats membership as a concurrency and consistency problem, not a clie
 4. Invitation tokens are random, hashed at rest, expiring, revocable, and consumed transactionally.
 5. Leader departure, succession, invite invalidation, and membership changes preserve the intended lifecycle invariants.
 
-See [architecture and correctness notes](docs/architecture.md) for the transaction model and [test strategy](docs/test-strategy.md) for the verification matrix.
+See [architecture and correctness notes](docs/architecture.md) for the transaction model, [engineering decisions](docs/engineering-decisions.md) for the technology trade-offs, [threat model](docs/threat-model.md) for the security boundaries, and [test strategy](docs/test-strategy.md) for the verification matrix.
 
 ## Technology
 
@@ -72,7 +72,7 @@ Never prefix secrets with `NEXT_PUBLIC_`. Never commit `.env.local`.
 ### Run
 
 ```bash
-npm install
+npm ci
 npm run dev
 ```
 
@@ -91,7 +91,7 @@ npm audit --audit-level=moderate
 
 The MongoDB integration test requires a replica set through `MONGODB_TEST_URI`. CI provisions a disposable replica set, validates a dataset of 10,000 users / 2,000 teams / 8,000 memberships, runs the 50-contender final-seat race test, builds the production application, executes smoke checks, and runs a 100-VU / 30-second k6 board test.
 
-Latest recorded CI run: [run 41517226227](https://github.com/PSP-YN/Race-proof-team-formation/actions/runs/41517226227). The recorded result is 3,000 requests, 97.08 requests/second, 18.85 ms average response, 18.75 ms p95, 0% HTTP failures, and 6,000/6,000 board checks passed. These are GitHub-runner measurements against a disposable local MongoDB replica set, not production-region measurements. See [performance report](docs/performance.md).
+Latest recorded CI run: [run 41517226227](https://github.com/PSP-YN/Race-proof-team-formation/actions/runs/41517226227). The recorded result is 3,000 requests, 97.80 requests/second, 14.62 ms average response, 22.26 ms p95, 0% HTTP failures, and 6,000/6,000 board checks passed. These are GitHub-runner measurements against a disposable local MongoDB replica set, not production-region measurements. See [performance report](docs/performance.md).
 
 ## Deployment status and production gates
 
@@ -115,6 +115,8 @@ Use the five-minute walkthrough in [docs/demo-runbook.md](docs/demo-runbook.md).
 ## Project documentation
 
 - [Architecture and correctness](docs/architecture.md)
+- [Engineering decisions and industry patterns](docs/engineering-decisions.md)
+- [Threat model](docs/threat-model.md)
 - [Test strategy and black-box matrix](docs/test-strategy.md)
 - [Performance report](docs/performance.md)
 - [Production readiness and operations](docs/production-readiness.md)
