@@ -14,7 +14,7 @@ The board uses MongoDB change streams over the teams, memberships and invite col
 
 ## Abuse telemetry
 
-Rate-limit violations are recorded as hashed-identity security events with a 30-day TTL. Do not store raw IP addresses, passwords, invite tokens, reset tokens, or email contents in telemetry. Alert on sustained auth failures, invite creation/revocation spikes, and repeated rate-limit violations. Review audit events separately from security telemetry.
+Rate-limit violations (including SSE connection limits) and failed authentication attempts are recorded as hashed-identity security events with a 30-day TTL. Do not store raw IP addresses, passwords, invite tokens, reset tokens, or email contents in telemetry. Alert on sustained auth failures, invite creation/revocation spikes, and repeated rate-limit violations. Review audit events separately from security telemetry.
 
 ## Abuse monitoring
 
