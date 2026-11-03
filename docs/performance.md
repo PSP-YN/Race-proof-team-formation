@@ -1,10 +1,10 @@
 # Performance test record
 
-## Latest completed submission-readiness CI benchmark
+## Recorded submission-readiness CI benchmark
 
-**Run:** [GitHub Actions CI run 41672190102 (PR #11)](https://github.com/PSP-YN/Race-proof-team-formation/actions/runs/41672190102)
+**Run:** [GitHub Actions CI run 41672742336 (PR #11)](https://github.com/PSP-YN/Race-proof-team-formation/actions/runs/41672742336)
 
-**Tested commit:** `624fb51a97856cb4bb95845783649922aec31efc` (submission-readiness branch)
+**Tested commit:** `e32583046339d068ea2abdfe69c06568ae99d2f3` (documentation-only commit; application code is unchanged from `624fb51a97856cb4bb95845783649922aec31efc`)
 
 **Environment:** GitHub-hosted runner, Next.js production server, MongoDB 7 disposable Docker replica set  
 **Dataset:** 10,000 users, 2,000 teams, 8,000 memberships  
@@ -14,18 +14,18 @@
 | Metric | Result |
 |---|---:|
 | Requests | 3,000 |
-| Throughput | 98.08 requests/second |
-| Average response | 12.84 ms |
-| Median response | 4.64 ms |
-| p90 response | 11.34 ms |
-| p95 response | 28.05 ms |
-| Maximum response | 374.53 ms |
+| Throughput | 97.65 requests/second |
+| Average response | 17.48 ms |
+| Median response | 4.15 ms |
+| p90 response | 14.76 ms |
+| p95 response | 89.81 ms |
+| Maximum response | 406.50 ms |
 | HTTP failures | 0.00% |
 | Board checks | 6,000 / 6,000 passed |
 
 The recorded k6 summary provides median, p90 and p95 but not p99. The maximum is a single observed outlier, not a percentile. p99 is intentionally not inferred.
 
-**Earlier main-branch baseline:** [CI run 41523345249](https://github.com/PSP-YN/Race-proof-team-formation/actions/runs/41523345249) recorded 97.75 requests/second, 10.77 ms p95 and 0% HTTP failures under the same nominal 100-VU/30-second scenario. The 28.05 ms p95 from the newer run remains below the 200 ms threshold; differences between runner executions should be treated as benchmark variance, not a production latency trend.
+**Comparison runs:** [PR CI run 41672190102](https://github.com/PSP-YN/Race-proof-team-formation/actions/runs/41672190102) recorded 98.08 requests/second and 28.05 ms p95. The earlier [main-branch baseline 41523345249](https://github.com/PSP-YN/Race-proof-team-formation/actions/runs/41523345249) recorded 97.75 requests/second and 10.77 ms p95. All three runs recorded 0% HTTP failures. The latest 89.81 ms p95 remains below the 200 ms threshold; the variation between runner executions should be treated as benchmark variance, not a production latency trend.
 
 ## Acceptance thresholds
 
