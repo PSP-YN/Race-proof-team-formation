@@ -1,0 +1,49 @@
+services:
+  mongo:
+    image: mongo:7
+    command: ["mongod", "--replSet", "rs0", "--bind_ip_all"]
+    restart: unless-stopped
+    volumes:
+      - crewforge_mongo:/data/db
+    healthcheck:
+      test: ["CMD", "mongosh", "--quiet", "--eval", "db.adminCommand({ping:1}).ok"]
+      interval: 5s
+      timeout: 3s
+      retries: 30
+
+  mongo-init:
+    image: mongo:7
+    depends_on:
+      mongo:
+        condition: service_healthy
+    restart: "no"
+    entrypoint: ["/bin/bash", "-lc"]
+    command:
+      - |
+        until mongosh "mongodb://mongo:27017/admin" --quiet --eval 'db.hello().ok' >/dev/null 2>&1; do sleep 1; done
+        mongosh "mongodb://mongo:27017/admin" --quiet --eval 'try { rs.status().ok } catch(e) { rs.initiate({_id:"rs0",members:[{_id:0,host:"mongo:27017"}]}) }'
+        until mongosh "mongodb://mongo:27017/admin" --quiet --eval 'db.hello().isWritablePrimary' | grep -q true; do sleep 1; done
+
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    depends_on:
+      mongo-init:
+        condition: service_completed_successfully
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      NODE_ENV: production
+      MONGODB_URI: mongodb://mongo:27017/crewforge?replicaSet=rs0
+      JWT_SECRET: ${JWT_SECRET:?Create a strong JWT_SECRET in .env before starting}
+      NEXT_PUBLIC_APP_URL: ${NEXT_PUBLIC_APP_URL:-http://localhost:3000}
+      RESEND_API_KEY: ${RESEND_API_KEY:-}
+      EMAIL_FROM: ${EMAIL_FROM:-}
+      ADMIN_EMAILS: ${ADMIN_EMAILS:-}
+      TRUSTED_CLIENT_IP_HEADER: x-real-ip
+      SECURITY_ALERT_WEBHOOK: ${SECURITY_ALERT_WEBHOOK:-}
+
+volumes:
+  crewforge_mongo:
