@@ -11,7 +11,7 @@ A normal team directory is easy to build but fails under event-scale contention.
 - Unique database index enforces one membership per participant per hackathon.
 - A conditional capacity reservation and membership insert occur in one MongoDB transaction.
 - Idempotency keys make safe retries deterministic.
-- Invitation tokens are opaque, hashed at rest, expiring and single-use.
+- Invitation tokens are opaque, hashed at rest, expiring and single-use. Applicants can submit join requests; leaders can accept or decline them, and leaders can remove members.
 - Leadership succession and invite revocation happen as a transactional lifecycle operation.
 
 ## Five-minute demo path
@@ -21,7 +21,7 @@ A normal team directory is easy to build but fails under event-scale contention.
 3. Open the leader's invite manager, generate an invitation and revoke it.
 4. Demonstrate that a revoked/expired invite cannot be accepted.
 5. Join a team with a second account and show the membership count.
-6. Open skill matching and explain the score: 75% of listed skill needs a candidate can fill that current members do not cover, plus 25% available capacity.
+6. Open skill matching and explain the score: when both sides provide IANA time zones, 65% uncovered skill fit, 15% approximate time-zone offset compatibility, and 20% open capacity; if timezone data is missing, skill fit and capacity use 75%/25%.
 7. Open the restricted security dashboard as an allowlisted operator and explain hashed telemetry.
 8. Show the CI run: 10,000 users, 2,000 teams, 8,000 memberships; 50 concurrent contenders for one remaining seat; smoke checks; 100-VU k6 test.
 
@@ -47,7 +47,7 @@ Be precise: the recorded load test is a GitHub Actions runner against a local Mo
 
 **What are the trade-offs?** Change streams need a replica set and consume database connections. Serverless duration and connection limits must be measured on the target host. The UI falls back to periodic refresh if SSE is unavailable.
 
-**How does matching work?** Candidate skills are compared with the team's declared skill needs and the skills already represented by current members. A candidate is rewarded for filling uncovered needs, not for lacking the skills the team asks for.
+**How does matching work?** Candidate skills are compared with team needs not yet represented by current members. When both candidate and team provide IANA time zones, the score also incorporates approximate offset compatibility. The calculation and fallback weights are documented and unit-tested.
 
 **What remains external?** Email delivery needs a verified Resend sender; the managed WAF needs a Cloudflare zone with DNS proxied; production smoke and load tests need a configured host and production-like database.
 
