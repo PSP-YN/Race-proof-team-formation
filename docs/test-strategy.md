@@ -9,7 +9,7 @@ This document separates automated white-box verification, automated black-box sm
 | Team size invariants | tests/unit/invariants.test.ts | Valid min/max sizes are accepted; invalid ranges are rejected |
 | Route-handler API contracts | tests/api/route-contracts.test.ts | 32 request/response tests across auth, team, join and health endpoints |
 | Skill matching | tests/unit/invariants.test.ts | Scores reward uncovered skills and available capacity; unrelated or already-covered skills are not rewarded |
-| Contended membership | tests/integration/race.test.ts | Exactly one of 50 contenders obtains the final seat; stored membership count and team memberCount remain consistent |
+| Membership transaction integration | tests/integration/race.test.ts | Four real-MongoDB tests: 50-way final-seat race, cross-team uniqueness, idempotent replay and conflicting-key rejection |
 | Type and build integrity | CI | TypeScript typecheck and Next.js production build pass |
 | Dependency risk | CI | npm audit reports no vulnerabilities at the configured moderate threshold |
 
