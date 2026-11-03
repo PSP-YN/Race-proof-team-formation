@@ -9,6 +9,8 @@ WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 ENV NEXT_TELEMETRY_DISABLED=1
+ARG NEXT_PUBLIC_APP_URL=http://localhost:3000
+ENV NEXT_PUBLIC_APP_URL=$NEXT_PUBLIC_APP_URL
 # Build-time placeholders only. Runtime secrets must be provided by the deployment environment.
 ENV MONGODB_URI=mongodb://127.0.0.1:27017/crewforge?replicaSet=rs0
 ENV JWT_SECRET=build-only-placeholder-secret-not-used-at-runtime
@@ -23,7 +25,6 @@ ENV PORT=3000
 RUN addgroup --system --gid 1001 nodejs && adduser --system --uid 1001 nextjs
 COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
-COPY --from=builder --chown=nextjs:nodejs /app/public ./public
 USER nextjs
 EXPOSE 3000
 CMD ["node","server.js"]
