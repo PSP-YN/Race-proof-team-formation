@@ -39,7 +39,7 @@
 ## Local verification on the submission-readiness branch
 
 - TypeScript typecheck: passed.
-- Vitest: **42/42 passed** across 3 files, including 32 route-handler API contract tests and the 50-contender MongoDB replica-set race integration test.
+- Vitest: **45/45 passed** across 3 files, including 32 route-handler API contract tests and four MongoDB replica-set integration tests.
 - Next.js production build: passed.
 - `npm audit --audit-level=moderate`: 0 vulnerabilities.
 

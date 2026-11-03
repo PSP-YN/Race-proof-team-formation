@@ -30,7 +30,7 @@ Indexes are part of the correctness model, not optional performance tuning. The 
 5. The transaction records the audit event and commits. If capacity or uniqueness fails, the transaction aborts; the counter and membership cannot diverge.
 6. The MongoDB driver retries transient transaction conflicts. A replay with the same idempotency key and same target returns the original logical result; reusing the key for a different target is rejected.
 
-The integration test creates one remaining seat and launches 50 concurrent contenders. Its assertions require exactly one successful membership, two total members including the leader, and a stored member count of two.
+The integration suite calls the production `joinTeamTransaction` helper. It creates one remaining seat and launches 50 concurrent contenders; assertions require exactly one successful membership, two total members including the leader, a stored member count of two, one idempotency record and one audit event. Separate real-database tests cover cross-team duplicate membership, replay safety and conflicting idempotency-key reuse.
 
 ## Other lifecycle and product decisions
 
@@ -48,7 +48,7 @@ MongoDB transactions and unique indexes were chosen over client-side checks, in-
 
 The repository documents a CI benchmark with 10,000 users, 2,000 teams and 8,000 memberships; 100 virtual users for 30 seconds; 3,000 requests; 97.75 requests/second; 10.77 ms p95; and 0% HTTP failures. The environment was a GitHub-hosted runner with a disposable local MongoDB replica set. It is a regression benchmark, **not** a production-region or deployed-service measurement.
 
-The automated suite includes 32 route-handler API contract tests, 9 unit tests and a MongoDB replica-set integration test for the 50-contender race. API tests use real `NextRequest` objects and the actual route handlers while isolating database/auth/security dependencies with mocks; they are not full deployed end-to-end tests. Provider delivery, full database-backed invite lifecycle and broader staging authorization/abuse checks remain manual release checks.
+The automated suite includes 32 route-handler API contract tests, 9 unit tests and four MongoDB replica-set integration tests, including the 50-contender race. API tests use real `NextRequest` objects and the actual route handlers while isolating database/auth/security dependencies with mocks; they are not full deployed end-to-end tests. Provider delivery, full database-backed invite lifecycle and broader staging authorization/abuse checks remain manual release checks.
 
 ## What I would do with one more week
 
