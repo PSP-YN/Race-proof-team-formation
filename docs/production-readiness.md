@@ -2,7 +2,7 @@
 
 ## Current release status
 
-The repository is a CI-verified release candidate, not a production deployment. The latest full CI run passed on commit `a22a220d716c5886a0daa32b43ffd2533c871c01`. A production launch still requires the external services, secrets, domain, and deployed tests listed below.
+PR #2 has been merged into `main` at `5fee2fd60092cbb6ea3bac14caca4f4bfc7bce87`. The PR head passed CI and CodeQL; post-merge CI and CodeQL are running on the squash commit. The repository is a CI-verified release candidate, not a production deployment. Production launch still requires the external services, secrets, domain, and deployed tests listed below.
 
 ## Required services
 
