@@ -23,7 +23,7 @@ The challenge prioritizes concurrency correctness, then defendable design decisi
 | 100 concurrent users, board p95 <200 ms | k6, 100 VUs / 30 seconds | Latest completed pre-change CI benchmark p95 10.77 ms; synthetic only |
 | Mobile and keyboard-only | Responsive CSS, visible focus, reduced-motion preference, 44px button minimum | Manual mobile/screen-reader/keyboard/axe review still required |
 | Deployed live URL | Requires Vercel, Atlas, email provider and domain | **Not deployed yet** |
-| Docker Compose bonus | Docker standalone image + MongoDB replica-set Compose | Build/launch must be verified by CI or local Docker before claiming validated |
+| Docker Compose bonus | Docker standalone image + MongoDB replica-set Compose, exercised by CI container smoke | Build/launch must be verified by CI or local Docker before claiming validated |
 | Design document | `docs/design-summary.md` | Added |
 | Walkthrough video (≤5 min) | Script in `docs/demo-runbook.md` | **Video recording still required** |
 
