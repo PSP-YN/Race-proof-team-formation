@@ -1,8 +1,12 @@
+import {MongoClient} from "mongodb";
+import {SignJWT} from "jose";
 const base=(process.env.BASE_URL||"http://127.0.0.1:3000").replace(/\/$/,"");
 const origin=process.env.NEXT_PUBLIC_APP_URL||base;
 const password=process.env.SEED_DEMO_PASSWORD;
 const hackathonId="api-suite-"+Date.now();
 if(!password)throw new Error("SEED_DEMO_PASSWORD must be available to API integration tests");
+const mongo=new MongoClient(process.env.MONGODB_URI);await mongo.connect();const seedDb=mongo.db();
+async function seededCookie(n){const email="demo+"+String(n).padStart(5,"0")+"@crewforge.local",u=await seedDb.collection("users").findOne({email});assert(u,"seed user missing: "+email);const token=await new SignJWT({userId:u._id.toString(),email:u.email,name:u.name,sessionVersion:u.sessionVersion||0}).setProtectedHeader({alg:"HS256"}).setIssuedAt().setExpirationTime("7d").sign(new TextEncoder().encode(process.env.JWT_SECRET));return "crewforge_session="+token}
 let passed=0,failed=0;
 async function test(name,fn){try{await fn();passed++;console.log("PASS API",String(passed).padStart(2,"0"),name)}catch(e){failed++;console.error("FAIL API",name,e instanceof Error?e.message:e)}}
 function assert(ok,message){if(!ok)throw new Error(message)}
@@ -36,5 +40,7 @@ await test("invalid IANA timezone is rejected",async()=>{const r=await request("
 await test("valid timezone match includes compatibility score",async()=>{const r=await request("/api/matches",{method:"POST",cookie:applicantA.cookie,body:{hackathonId,skills:["React"],timeZone:"Asia/Kolkata"}});assert(r.status===200,"matching failed "+r.status);const m=r.data.matches.find(x=>x.teamId===teamId);assert(m&&m.timeZoneScore===100,"expected matching timezone score 100")});
 await test("team leader cannot decide another team's request",async()=>{const r=await request("/api/teams/"+team2Id+"/requests",{method:"PATCH",cookie:leader.cookie,body:{requestId:requestA,decision:"accept"}});assert(r.status===403||r.status===404,"expected forbidden team access got "+r.status)});
 await test("team timezone appears in match results",async()=>{const r=await request("/api/matches",{method:"POST",cookie:applicantA.cookie,body:{hackathonId,skills:["Python"],timeZone:"America/Los_Angeles"}});assert(r.status===200&&r.data.matches.some(m=>m.teamId===team2Id&&m.timeZoneScore===100),"team timezone score missing")});
+await test("50 concurrent join requests to HTTP API produce exactly one winner",async()=>{const raceHackathonId="api-race-"+Date.now();const created=await request("/api/teams",{method:"POST",cookie:secondLeader.cookie,body:{hackathonId:raceHackathonId,name:"Race proof "+Date.now(),description:"API concurrency test",minSize:2,maxSize:2,skills:["Concurrency"],timeZone:"Asia/Kolkata"}});assert(created.status===201,"race team creation failed "+created.status);const raceTeamId=created.data.teamId;const contenderCookies=await Promise.all(Array.from({length:50},(_,i)=>seededCookie(8050+i)));const outcomes=await Promise.all(contenderCookies.map((cookie,i)=>request("/api/teams/"+raceTeamId+"/join",{method:"POST",cookie,body:{hackathonId:raceHackathonId,idempotencyKey:"race-api-"+i+"-"+Date.now()}})));const winners=outcomes.filter(x=>x.status===200);assert(winners.length===1,"expected one winner; got "+winners.length+"; statuses="+outcomes.map(x=>x.status).join(","));const roster=await request("/api/teams/"+raceTeamId,{cookie:secondLeader.cookie});assert(roster.status===200,"race team roster fetch failed");assert(roster.data.team.memberCount===2&&roster.data.members.length===2,"team count or roster inconsistent after 50-way API race")});
 console.log(JSON.stringify({apiTests:passed,failed},null,2));
+await mongo.close();
 if(failed||passed<20)process.exit(1);
