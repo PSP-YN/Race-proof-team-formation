@@ -71,6 +71,10 @@ Email verification and recovery flows require a configured Resend sender. Use pr
 - [ ] Complete the organizer's submission form before the deadline.
 - [ ] If no deployment is authorized, disclose that the live-URL criterion is unmet. Do not use the Vercel project hostname as a live URL until a successful deployment actually exists.
 
+## Deployment suppression
+
+Per the project owner's instruction, automatic Vercel Git deployments are disabled in `vercel.json`, and Preview deployments are disabled in the Vercel project settings. No live deployment is being created for this submission. Re-enable automatic deployments only after the owner explicitly requests deployment and the production gates in [docs/production-readiness.md](docs/production-readiness.md) are satisfied.
+
 ## Submission integrity
 
 AI coding tools are allowed by the challenge, but candidates must be able to explain every line and make a small live change during the interview. Only present technical details you personally understand. The repository distinguishes implemented code, automated evidence, manual checks and external deployment gates; preserve that distinction in the submission and interview.
