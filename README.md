@@ -110,7 +110,7 @@ Follow [production readiness](docs/production-readiness.md) for the runbook and 
 
 ## Demo
 
-Use the five-minute walkthrough in [docs/demo-runbook.md](docs/demo-runbook.md). The demo guide includes setup, test-account preparation, technical explanation, recovery steps, and claims to avoid. The challenge-specific explanation and interview preparation are in [docs/challenge-submission.md](docs/challenge-submission.md).
+Use the five-minute walkthrough in [docs/demo-runbook.md](docs/demo-runbook.md). The demo guide includes setup, test-account preparation, technical explanation, recovery steps, and claims to avoid. The reviewer-first [submission pack](SUBMISSION.md) links the one-page design brief, measured performance evidence, test matrix and [walkthrough video script](docs/walkthrough-video-script.md). The challenge-specific explanation and interview preparation are in [docs/challenge-submission.md](docs/challenge-submission.md).
 
 ## Project documentation
 

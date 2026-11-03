@@ -30,11 +30,20 @@
 | Explainable skill recommendations | Matching helper and UI | Implemented |
 | CI and security scanning | GitHub Actions CI and CodeQL workflows | Configured; verify latest main-branch run before submission |
 | 100 concurrent users / board p95 under 200 ms | [Performance report](docs/performance.md) | CI benchmark recorded: 100 VUs, 10.77 ms p95, 0% HTTP failures |
-| At least 20 API tests | [Test strategy](docs/test-strategy.md) | **Not yet satisfied** — current automated suite is smaller; several API scenarios are manual |
+| At least 20 API tests | [Test strategy](docs/test-strategy.md), `tests/api/route-contracts.test.ts` | **32 route-handler API contract tests**; database/provider end-to-end checks remain separate |
 | Responsive, keyboard-accessible UI | UI implementation | Needs a final manual accessibility and mobile pass |
 | Live URL | Challenge requirement | **Not supplied** — no deployment was performed, per project owner instruction |
 | One-page design doc | [One-page design brief](docs/one-page-design.md) | Prepared |
 | Walkthrough video (up to 5 minutes) | [Recording script](docs/walkthrough-video-script.md) | Script prepared; video recording/upload still required |
+
+## Local verification on the submission-readiness branch
+
+- TypeScript typecheck: passed.
+- Vitest: **42/42 passed** across 3 files, including 32 route-handler API contract tests and the 50-contender MongoDB replica-set race integration test.
+- Next.js production build: passed.
+- `npm audit --audit-level=moderate`: 0 vulnerabilities.
+
+These checks were run locally on the submission-readiness branch. Verify GitHub Actions again after the PR is merged; local success is not a substitute for the final main-branch CI record.
 
 ## Recorded benchmark
 
@@ -55,8 +64,7 @@ Email verification and recovery flows require a configured Resend sender. Use pr
 
 ## Before submitting
 
-- [ ] Verify the latest `main` CI and CodeQL runs are green; link the exact run in the submission form.
-- [ ] Close the **20 API-test gap** with automated API-level coverage. Do not relabel manual scenarios as automated tests.
+- [ ] Merge the submission-readiness branch after CI passes, then verify the latest `main` CI and CodeQL runs are green; link the exact run in the submission form.
 - [ ] Complete a keyboard-only pass and mobile viewport pass; record any remaining accessibility limitations.
 - [ ] Record the five-minute walkthrough from a disposable local environment and upload it.
 - [ ] Re-check all repository links, setup steps and public visibility from a signed-out browser.

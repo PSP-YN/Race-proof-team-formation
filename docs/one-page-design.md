@@ -48,7 +48,7 @@ MongoDB transactions and unique indexes were chosen over client-side checks, in-
 
 The repository documents a CI benchmark with 10,000 users, 2,000 teams and 8,000 memberships; 100 virtual users for 30 seconds; 3,000 requests; 97.75 requests/second; 10.77 ms p95; and 0% HTTP failures. The environment was a GitHub-hosted runner with a disposable local MongoDB replica set. It is a regression benchmark, **not** a production-region or deployed-service measurement.
 
-The automated suite includes unit tests and the 50-contender MongoDB integration test. The challenge asks for at least 20 API tests; the current test-strategy document identifies authentication, invite, authorization and abuse-control scenarios as manual staging checks. That API-test requirement remains open and must not be represented as satisfied.
+The automated suite includes 32 route-handler API contract tests, 9 unit tests and a MongoDB replica-set integration test for the 50-contender race. API tests use real `NextRequest` objects and the actual route handlers while isolating database/auth/security dependencies with mocks; they are not full deployed end-to-end tests. Provider delivery, full database-backed invite lifecycle and broader staging authorization/abuse checks remain manual release checks.
 
 ## What I would do with one more week
 
