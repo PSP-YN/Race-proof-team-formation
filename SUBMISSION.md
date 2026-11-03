@@ -47,7 +47,7 @@ These checks were run locally on the submission-readiness branch. Verify GitHub 
 
 ## Recorded benchmark
 
-The current report records a GitHub-hosted runner test using a disposable MongoDB 7 replica set and a seeded dataset of 10,000 users, 2,000 teams and 8,000 memberships. The recorded submission-readiness CI run (100 VUs for 30 seconds) recorded 3,000 requests, 97.65 requests/second, 89.81 ms p95 and 0% HTTP failures. These are CI measurements, not a production deployment result or a production capacity guarantee.
+The current report records a GitHub-hosted runner test using a disposable MongoDB 7 replica set and a seeded dataset of 10,000 users, 2,000 teams and 8,000 memberships. The latest main-branch CI run (100 VUs for 30 seconds) recorded 3,000 requests, 97.84 requests/second, 11.01 ms p95 and 0% HTTP failures. These are CI measurements, not a production deployment result or a production capacity guarantee.
 
 See [docs/performance.md](docs/performance.md) for the exact run, tested commit and caveats.
 
