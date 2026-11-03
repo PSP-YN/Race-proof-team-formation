@@ -64,10 +64,23 @@ jobs:
           JWT_SECRET: test-secret-at-least-thirty-two-characters-long
           NEXT_PUBLIC_APP_URL: http://localhost:3000
           TRUSTED_CLIENT_IP_HEADER: x-real-ip
-      - name: Validate Docker image and Compose configuration
+      - name: Validate Docker Compose deployment and smoke test
         run: |
-          docker build -t crewforge:ci .
-          JWT_SECRET=ci-only-placeholder-secret-at-least-32-chars docker compose config --quiet
+          export JWT_SECRET=ci-only-placeholder-secret-at-least-32-chars
+          export NEXT_PUBLIC_APP_URL=http://localhost:3000
+          docker compose config --quiet
+          docker compose up -d --build
+          cleanup() { docker compose down -v; }
+          trap cleanup EXIT
+          ready=0
+          for i in $(seq 1 60); do
+            if curl -fsS http://127.0.0.1:3000/api/health >/dev/null; then ready=1; break; fi
+            sleep 2
+          done
+          if [ "$ready" -ne 1 ]; then docker compose logs app mongo-init; exit 1; fi
+          BASE_URL=http://127.0.0.1:3000 npm run smoke
+          docker compose down -v
+          trap - EXIT
       - name: Install k6
         run: |
           curl -fsSL https://dl.k6.io/key.gpg | sudo gpg --dearmor -o /usr/share/keyrings/k6-archive-keyring.gpg
