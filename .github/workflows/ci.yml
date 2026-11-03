@@ -40,7 +40,9 @@ jobs:
         run: npm audit --audit-level=moderate
       - name: Verify 10k participant and 2k team seed
         run: |
-          SEED_DEMO_PASSWORD="$(openssl rand -hex 32)" ALLOW_DEMO_SEED=true npm run seed
+          export SEED_DEMO_PASSWORD="$(openssl rand -hex 32)"
+          echo "SEED_DEMO_PASSWORD=$SEED_DEMO_PASSWORD" >> "$GITHUB_ENV"
+          ALLOW_DEMO_SEED=true npm run seed
           docker exec crewforge-mongo mongosh crewforge --quiet --eval '
             const h="hack4hack-crew-hiring-2026";
             const users=db.users.countDocuments({email:/^demo\+\d{5}@crewforge\.local$/});
@@ -62,6 +64,23 @@ jobs:
           JWT_SECRET: test-secret-at-least-thirty-two-characters-long
           NEXT_PUBLIC_APP_URL: http://localhost:3000
           TRUSTED_CLIENT_IP_HEADER: x-real-ip
+      - name: Validate Docker Compose deployment and smoke test
+        run: |
+          export JWT_SECRET=ci-only-placeholder-secret-at-least-32-chars
+          export NEXT_PUBLIC_APP_URL=http://localhost:3000
+          docker compose config --quiet
+          docker compose up -d --build
+          cleanup() { docker compose down -v; }
+          trap cleanup EXIT
+          ready=0
+          for i in $(seq 1 60); do
+            if curl -fsS http://127.0.0.1:3000/api/health >/dev/null; then ready=1; break; fi
+            sleep 2
+          done
+          if [ "$ready" -ne 1 ]; then docker compose logs app mongo-init; exit 1; fi
+          BASE_URL=http://127.0.0.1:3000 npm run smoke
+          docker compose down -v
+          trap - EXIT
       - name: Install k6
         run: |
           curl -fsSL https://dl.k6.io/key.gpg | sudo gpg --dearmor -o /usr/share/keyrings/k6-archive-keyring.gpg
@@ -78,6 +97,7 @@ jobs:
           done
           if [ "$ready" -ne 1 ]; then cat /tmp/crewforge-next.log; exit 1; fi
           BASE_URL=http://127.0.0.1:3000 npm run smoke
+          BASE_URL=http://127.0.0.1:3000 npm run api-test
           BASE_URL=http://127.0.0.1:3000 npm run loadtest
         env:
           MONGODB_URI: mongodb://127.0.0.1:27017/crewforge?replicaSet=rs0

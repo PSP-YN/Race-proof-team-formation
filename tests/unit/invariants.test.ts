@@ -1,30 +1,7 @@
 import {describe,it,expect} from "vitest";
-import {scoreTeamMatch} from "../../src/lib/matching";
+import {scoreTeamMatch,isValidTimeZone,scoreTimeZoneCompatibility} from "../../src/lib/matching";
 import {isValidTeamSize} from "../../src/lib/team-invariants";
 
-describe("team size validation",()=>{
- it("accepts a valid minimum and maximum",()=>{expect(isValidTeamSize(2,5)).toBe(true)});
- it("rejects a minimum greater than the maximum",()=>{expect(isValidTeamSize(6,5)).toBe(false)});
- it("rejects a team size below two",()=>{expect(isValidTeamSize(1,5)).toBe(false)});
- it("rejects a maximum above ten",()=>{expect(isValidTeamSize(2,11)).toBe(false)});
-});
-describe("complementary skill matching",()=>{
- it("rewards skills the candidate adds to the team",()=>{
-  const match=scoreTeamMatch(["React","Python"],["React","Python"],[],2,5);
-  expect(match.addedSkills).toEqual(["react","python"]);
-  expect(match.reason).toContain("react");
-  expect(match.score).toBe(90);
- });
- it("does not call team skills missing from the candidate a contribution",()=>{
-  const match=scoreTeamMatch(["React"],["React"],["React"],2,5);
-  expect(match.addedSkills).toEqual([]);
-  expect(match.reason).not.toContain("fills");
- });
- it("does not reward unrelated skills that do not fill a listed need",()=>{const match=scoreTeamMatch(["Go"],["React"],[],2,5);expect(match.addedSkills).toEqual([]);expect(match.score).toBe(15)});
- it("does not reward skills already represented by team members",()=>{const match=scoreTeamMatch(["React"],["React"],["React"],2,5);expect(match.addedSkills).toEqual([])});
- it("increases the score when the team has more open seats",()=>{
-  const full=scoreTeamMatch(["Python"],["React"],[],5,5);
-  const open=scoreTeamMatch(["Python"],["React"],[],2,5);
-  expect(open.score).toBeGreaterThan(full.score);
- });
-});
+describe("team size validation",()=>{it("accepts valid min/max",()=>expect(isValidTeamSize(2,5)).toBe(true));it("rejects min greater than max",()=>expect(isValidTeamSize(6,5)).toBe(false));it("rejects size below two",()=>expect(isValidTeamSize(1,5)).toBe(false));it("rejects max above ten",()=>expect(isValidTeamSize(2,11)).toBe(false));it("rejects non-integer sizes",()=>expect(isValidTeamSize(2.5,5)).toBe(false));});
+describe("complementary skill matching",()=>{it("rewards skills that fill team needs",()=>{const m=scoreTeamMatch(["React","Python"],["React","Python"],[],2,5);expect(m.addedSkills).toEqual(["react","python"]);expect(m.reason).toContain("react");expect(m.score).toBe(90)});it("does not treat required skills as candidate contribution",()=>{const m=scoreTeamMatch(["React"],["React"],["React"],2,5);expect(m.addedSkills).toEqual([]);expect(m.reason).not.toContain("fills")});it("does not reward unrelated skills",()=>{const m=scoreTeamMatch(["Go"],["React"],[],2,5);expect(m.addedSkills).toEqual([]);expect(m.score).toBe(15)});it("does not reward skills already represented",()=>expect(scoreTeamMatch(["React"],["React"],["React"],2,5).addedSkills).toEqual([]));it("rewards teams with more seats",()=>expect(scoreTeamMatch(["Python"],["React"],[],2,5).score).toBeGreaterThan(scoreTeamMatch(["Python"],["React"],[],5,5).score));it("normalizes whitespace and casing",()=>expect(scoreTeamMatch([" REACT "],["react"],[],2,5).addedSkills).toEqual(["react"]));it("deduplicates candidate skill labels",()=>expect(scoreTeamMatch(["React","react"],["React"],[],2,5).addedSkills).toEqual(["react"]));it("uses neutral skill fit when no skills are required",()=>expect(scoreTeamMatch(["Rust"],[],[],2,5).score).toBe(53));});
+describe("time-zone matching",()=>{it("accepts canonical IANA time zones",()=>expect(isValidTimeZone("Asia/Kolkata")).toBe(true));it("rejects unknown time zones",()=>expect(isValidTimeZone("Mars/Olympus")).toBe(false));it("scores identical zones as fully compatible",()=>expect(scoreTimeZoneCompatibility("Asia/Kolkata","Asia/Kolkata")).toBe(100));it("scores close offsets better than far offsets",()=>expect(scoreTimeZoneCompatibility("Asia/Kolkata","Asia/Dubai")).toBeGreaterThan(scoreTimeZoneCompatibility("Asia/Kolkata","America/Los_Angeles")));it("omits time-zone factor when unavailable",()=>expect(scoreTeamMatch(["React"],["React"],[],2,5).timeZoneScore).toBeNull());it("includes a timezone score when both zones are present",()=>expect(scoreTeamMatch(["React"],["React"],[],2,5,"Asia/Kolkata","Asia/Kolkata").timeZoneScore).toBe(100));it("time-zone-aware score uses a different weight",()=>expect(scoreTeamMatch(["React"],["React"],[],2,5,"Asia/Kolkata","Asia/Kolkata").score).toBe(92));});

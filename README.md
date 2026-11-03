@@ -11,10 +11,10 @@ CrewForge helps participants discover teams, create crews, and join without dupl
 ## Product capabilities
 
 - Participant registration, email verification, sign-in, sign-out, and password recovery.
-- Team creation, capacity management, leader-controlled settings, and team discovery.
+- Team creation, capacity management, leader-controlled settings, team discovery, and leader-reviewed join requests.
 - Transactional join/leave operations, leadership succession, and duplicate-membership protection.
 - Invitation creation, listing, revocation, expiry, and single-use acceptance.
-- Skill-complementarity recommendations with an explainable score.
+- Skill-complementarity and time-zone recommendations with an explainable score.
 - MongoDB change-stream Server-Sent Events (SSE), bounded stream lifetime, and client refresh fallback.
 - Rate limiting, origin validation, audit events, privacy-preserving security telemetry, and an allowlisted security dashboard.
 - Health endpoint, disposable large-dataset seeding, smoke tests, concurrency tests, and k6 load testing.
@@ -48,12 +48,26 @@ See [architecture and correctness notes](docs/architecture.md) for the transacti
 
 ### Requirements
 
-- Node.js 20 or newer
+- Node.js 22 (Node.js 20.9+ is the Next.js minimum)
 - npm
 - MongoDB replica set (local Docker or MongoDB Atlas)
 - Resend API key and verified sender for email verification and recovery flows
 
-### Configure
+### One-command Docker setup
+
+The included Compose setup runs the app with a MongoDB replica set (transactions and change streams enabled):
+
+```bash
+cp .env.example .env
+# Set JWT_SECRET to a strong random value in .env
+openssl rand -base64 48
+# Paste the generated value into .env, then:
+docker compose up --build
+```
+
+Open http://localhost:3000. Resend credentials are optional for the app to start but required for email verification and password recovery. Do not expose this local Compose stack directly to the public internet.
+
+### Manual configure
 
 ```bash
 cp .env.example .env.local
@@ -89,9 +103,9 @@ npm run build
 npm audit --audit-level=moderate
 ```
 
-The MongoDB integration test requires a replica set through `MONGODB_TEST_URI`. CI provisions a disposable replica set, validates a dataset of 10,000 users / 2,000 teams / 8,000 memberships, runs the 50-contender final-seat race test, builds the production application, executes smoke checks, and runs a 100-VU / 30-second k6 board test.
+The MongoDB integration test requires a replica set through `MONGODB_TEST_URI`. CI provisions a disposable replica set, validates 10,000 users / 2,000 teams / 8,000 memberships, runs the 50-contender final-seat race test, builds the production app, runs smoke checks and a black-box API suite with 20+ cases, and executes a 100-VU / 30-second k6 board test.
 
-Latest completed pre-merge CI benchmark: [run 41523345249](https://github.com/PSP-YN/Race-proof-team-formation/actions/runs/41523345249). It recorded 3,000 requests, 97.75 requests/second, 14.03 ms average response, 10.77 ms p95, 0% HTTP failures, and 6,000/6,000 board checks passed. These are GitHub-runner measurements against a disposable local MongoDB replica set, not production-region measurements. See [performance report](docs/performance.md).
+Latest verified PS1 follow-up CI benchmark: [run 41660184028](https://github.com/PSP-YN/Race-proof-team-formation/actions/runs/41660184028). It recorded 3,000 requests, 98.23 requests/second, 12.86 ms average response, 28.93 ms p95, 0% HTTP failures, 6,000/6,000 board checks passed, and 27/27 black-box API scenarios passed (including 50 concurrent HTTP join attempts with one winner). These are GitHub-runner measurements against a disposable local MongoDB replica set, not production-region measurements. See [performance report](docs/performance.md).
 
 ## Deployment status and production gates
 
@@ -118,6 +132,8 @@ Use the five-minute walkthrough in [docs/demo-runbook.md](docs/demo-runbook.md).
 - [Engineering decisions and industry patterns](docs/engineering-decisions.md)
 - [Threat model](docs/threat-model.md)
 - [Test strategy and black-box matrix](docs/test-strategy.md)
+- [PS1 requirements matrix](docs/requirements-matrix.md)
+- [One-page design summary](docs/design-summary.md)
 - [Performance report](docs/performance.md)
 - [Production readiness and operations](docs/production-readiness.md)
 - [Demo runbook](docs/demo-runbook.md)
