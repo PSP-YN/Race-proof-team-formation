@@ -1,9 +1,11 @@
 # Performance test record
 
-## Latest completed CI benchmark before merge
+## Latest completed submission-readiness CI benchmark
 
-**Run:** [GitHub Actions CI run 41523345249](https://github.com/PSP-YN/Race-proof-team-formation/actions/runs/41523345249)  
-**Tested commit:** `e80f8603ee47f87bb2080d69e77133c8c42273d9` (PR #2 head; merged to main as `5fee2fd60092cbb6ea3bac14caca4f4bfc7bce87`)  
+**Run:** [GitHub Actions CI run 41672190102 (PR #11)](https://github.com/PSP-YN/Race-proof-team-formation/actions/runs/41672190102)
+
+**Tested commit:** `624fb51a97856cb4bb95845783649922aec31efc` (submission-readiness branch)
+
 **Environment:** GitHub-hosted runner, Next.js production server, MongoDB 7 disposable Docker replica set  
 **Dataset:** 10,000 users, 2,000 teams, 8,000 memberships  
 **Load:** 100 virtual users for 30 seconds  
@@ -12,20 +14,22 @@
 | Metric | Result |
 |---|---:|
 | Requests | 3,000 |
-| Throughput | 97.75 requests/second |
-| Average response | 14.03 ms |
-| Median response | 5.12 ms |
-| p90 response | 7.95 ms |
-| p95 response | 10.77 ms |
-| Maximum response | 489.19 ms |
+| Throughput | 98.08 requests/second |
+| Average response | 12.84 ms |
+| Median response | 4.64 ms |
+| p90 response | 11.34 ms |
+| p95 response | 28.05 ms |
+| Maximum response | 374.53 ms |
 | HTTP failures | 0.00% |
 | Board checks | 6,000 / 6,000 passed |
 
 The recorded k6 summary provides median, p90 and p95 but not p99. The maximum is a single observed outlier, not a percentile. p99 is intentionally not inferred.
 
+**Earlier main-branch baseline:** [CI run 41523345249](https://github.com/PSP-YN/Race-proof-team-formation/actions/runs/41523345249) recorded 97.75 requests/second, 10.77 ms p95 and 0% HTTP failures under the same nominal 100-VU/30-second scenario. The 28.05 ms p95 from the newer run remains below the 200 ms threshold; differences between runner executions should be treated as benchmark variance, not a production latency trend.
+
 ## Acceptance thresholds
 
-The k6 scenario enforces p95 below 200 ms and HTTP failure rate below 1%. Both passed in this CI run.
+The k6 scenario enforces p95 below 200 ms and HTTP failure rate below 1%. Both passed in the latest submission-readiness CI run.
 
 ## Interpretation and limitations
 
