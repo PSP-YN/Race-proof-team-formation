@@ -17,6 +17,8 @@ export async function database():Promise<Db>{
    db.collection("teams").createIndex({hackathonId:1,status:1,createdAt:-1},),
    db.collection("memberships").createIndex({hackathonId:1,userId:1},{unique:true}),
    db.collection("memberships").createIndex({teamId:1,joinedAt:1},),
+   db.collection("joinRequests").createIndex({hackathonId:1,teamId:1,userId:1},{unique:true,partialFilterExpression:{status:"pending"}}),
+   db.collection("joinRequests").createIndex({teamId:1,status:1,requestedAt:1}),
    db.collection("invites").createIndex({tokenHash:1},{unique:true}),
    db.collection("invites").createIndex({expiresAt:1},{expireAfterSeconds:0}),
    db.collection("idempotency").createIndex({userId:1,key:1},{unique:true}),
