@@ -132,6 +132,8 @@ Use the five-minute walkthrough in [docs/demo-runbook.md](docs/demo-runbook.md).
 - [Engineering decisions and industry patterns](docs/engineering-decisions.md)
 - [Threat model](docs/threat-model.md)
 - [Test strategy and black-box matrix](docs/test-strategy.md)
+- [PS1 requirements matrix](docs/requirements-matrix.md)
+- [One-page design summary](docs/design-summary.md)
 - [Performance report](docs/performance.md)
 - [Production readiness and operations](docs/production-readiness.md)
 - [Demo runbook](docs/demo-runbook.md)
