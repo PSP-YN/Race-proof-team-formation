@@ -18,12 +18,12 @@ The challenge prioritizes concurrency correctness, then defendable design decisi
 | Auth, validation, brute-force controls | bcrypt, verified email, JWT cookie, Zod, rate limiting, origin checks, token hashing | CI smoke + black-box API tests; external security review pending |
 | Audit log every team change | Transactional audit records for create/join/leave/settings/invite/request/member actions | DB audit collection and test suite |
 | Complementary skills and time zone | Skill coverage + IANA timezone compatibility + capacity score | Unit tests and match API checks |
-| 20+ API tests in CI | `scripts/api-tests.mjs` exercises 20+ endpoint scenarios | Added to CI; PR verification must pass before claiming completed |
-| 10,000 users / 2,000 teams seed | Seed script and CI verification | Previous CI run validated 10,000 users, 2,000 teams and 8,000 memberships |
-| 100 concurrent users, board p95 <200 ms | k6, 100 VUs / 30 seconds | Latest completed pre-change CI benchmark p95 10.77 ms; synthetic only |
+| 20+ API tests in CI | `scripts/api-tests.mjs` exercises 20+ endpoint scenarios | 27/27 scenarios passed in CI run 41660184028; includes 50 concurrent HTTP requests through the actual join API |
+| 10,000 users / 2,000 teams seed | Seed script and CI verification | CI run 41660184028 validated 10,000 users, 2,000 teams and 8,000 memberships |
+| 100 concurrent users, board p95 <200 ms | k6, 100 VUs / 30 seconds | Latest successful follow-up CI run 41660184028: p95 28.93 ms; synthetic only |
 | Mobile and keyboard-only | Responsive CSS, visible focus, reduced-motion preference, 44px button minimum | Manual mobile/screen-reader/keyboard/axe review still required |
 | Deployed live URL | Requires Vercel, Atlas, email provider and domain | **Not deployed yet** |
-| Docker Compose bonus | Docker standalone image + MongoDB replica-set Compose, exercised by CI container smoke | Build/launch must be verified by CI or local Docker before claiming validated |
+| Docker Compose bonus | Docker standalone image + MongoDB replica-set Compose; CI run 41660184028 successfully built, launched, and smoke-tested the container app | Build/launch must be verified by CI or local Docker before claiming validated |
 | Design document | `docs/design-summary.md` | Added |
 | Walkthrough video (≤5 min) | Script in `docs/demo-runbook.md` | **Video recording still required** |
 

@@ -105,7 +105,7 @@ npm audit --audit-level=moderate
 
 The MongoDB integration test requires a replica set through `MONGODB_TEST_URI`. CI provisions a disposable replica set, validates 10,000 users / 2,000 teams / 8,000 memberships, runs the 50-contender final-seat race test, builds the production app, runs smoke checks and a black-box API suite with 20+ cases, and executes a 100-VU / 30-second k6 board test.
 
-Latest completed pre-merge CI benchmark: [run 41523345249](https://github.com/PSP-YN/Race-proof-team-formation/actions/runs/41523345249). It recorded 3,000 requests, 97.75 requests/second, 14.03 ms average response, 10.77 ms p95, 0% HTTP failures, and 6,000/6,000 board checks passed. These are GitHub-runner measurements against a disposable local MongoDB replica set, not production-region measurements. See [performance report](docs/performance.md).
+Latest verified PS1 follow-up CI benchmark: [run 41660184028](https://github.com/PSP-YN/Race-proof-team-formation/actions/runs/41660184028). It recorded 3,000 requests, 98.23 requests/second, 12.86 ms average response, 28.93 ms p95, 0% HTTP failures, 6,000/6,000 board checks passed, and 27/27 black-box API scenarios passed (including 50 concurrent HTTP join attempts with one winner). These are GitHub-runner measurements against a disposable local MongoDB replica set, not production-region measurements. See [performance report](docs/performance.md).
 
 ## Deployment status and production gates
 

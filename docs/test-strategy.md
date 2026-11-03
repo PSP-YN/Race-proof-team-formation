@@ -54,7 +54,9 @@ Run these against a disposable staging deployment using separate test accounts. 
 
 The GitHub Actions workflow provisions a disposable MongoDB replica set, seeds and verifies 10,000 users, 2,000 teams and 8,000 memberships, runs typecheck and automated unit/integration tests, audits locked dependencies, builds the application, starts the production server, runs smoke checks and black-box API tests, and executes the 100-VU/30-second k6 board test.
 
-Latest successful full CI run for the current branch head: https://github.com/PSP-YN/Race-proof-team-formation/actions/runs/41522634418
+Latest successful full CI run for the PS1 follow-up code: https://github.com/PSP-YN/Race-proof-team-formation/actions/runs/41660184028
+
+This run passed 27 black-box API scenarios, including the actual HTTP 50-contender final-seat race, and completed Docker Compose build/launch smoke tests. It is CI evidence, not production staging evidence.
 
 ## Manual release sign-off
 

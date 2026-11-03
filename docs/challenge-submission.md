@@ -23,7 +23,7 @@ A normal team directory is easy to build but fails under event-scale contention.
 5. Join a team with a second account and show the membership count.
 6. Open skill matching and explain the score: when both sides provide IANA time zones, 65% uncovered skill fit, 15% approximate time-zone offset compatibility, and 20% open capacity; if timezone data is missing, skill fit and capacity use 75%/25%.
 7. Open the restricted security dashboard as an allowlisted operator and explain hashed telemetry.
-8. Show the CI run: 10,000 users, 2,000 teams, 8,000 memberships; 50 concurrent contenders for one remaining seat; smoke checks; 100-VU k6 test.
+8. Show the CI run: 10,000 users, 2,000 teams, 8,000 memberships; 50 concurrent HTTP contenders for one remaining seat; 27 black-box API scenarios; Docker Compose smoke; 100-VU k6 test.
 
 Use a disposable staging database and test accounts. Do not demo production with seeded accounts or a shared demo password.
 
@@ -64,7 +64,7 @@ The repository includes a MIT license, contribution rules, Code of Conduct, vuln
 
 For the submission, link directly to:
 - Repository: https://github.com/PSP-YN/Race-proof-team-formation
-- CI evidence: https://github.com/PSP-YN/Race-proof-team-formation/actions/runs/41517226227
+- CI evidence (27 API checks, 50-way HTTP race, Docker Compose smoke, and k6): https://github.com/PSP-YN/Race-proof-team-formation/actions/runs/41660184028
 - Performance report: [docs/performance.md](performance.md)
 - Architecture: [docs/architecture.md](architecture.md)
 - Test matrix: [docs/test-strategy.md](test-strategy.md)

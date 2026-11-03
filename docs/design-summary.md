@@ -43,7 +43,7 @@ Zod validation, bcrypt, HttpOnly/SameSite cookies, session-version invalidation,
 
 ## Performance evidence and limitations
 
-CI seeds 10,000 users, 2,000 teams and 8,000 memberships. The 100-VU/30-second k6 test on the GitHub runner previously recorded 3,000 requests, 97.75 req/s, 14.03 ms average, 10.77 ms p95, 0% HTTP errors and 6,000/6,000 board checks. These are synthetic runner measurements with disposable local MongoDB, not production-region capacity.
+CI seeds 10,000 users, 2,000 teams and 8,000 memberships. The 100-VU/30-second k6 test on the GitHub runner latest completed CI run 41660184028 recorded 3,000 requests, 98.23 req/s, 12.86 ms average, 28.93 ms p95, 0% HTTP errors and 6,000/6,000 board checks. The same run passed 27 black-box API scenarios and the 50-contender HTTP race. These are synthetic runner measurements with disposable local MongoDB, not production-region capacity.
 
 ## Trade-offs / next week
 
