@@ -48,7 +48,7 @@
 - Next.js production build: passed.
 - `npm audit --audit-level=moderate`: 0 vulnerabilities.
 
-These checks were run locally before merge. The latest main-branch CI run after the demo guide and documentation updates is [41852364015](https://github.com/PSP-YN/Race-proof-team-formation/actions/runs/41852364015) (passed). CodeQL is [41852364104](https://github.com/PSP-YN/Race-proof-team-formation/actions/runs/41852364104) (passed).
+These checks were run locally before merge. The latest main-branch CI run for the moderated membership workflows is [41860229364](https://github.com/PSP-YN/Race-proof-team-formation/actions/runs/41860229364) (passed). CodeQL is [41860229287](https://github.com/PSP-YN/Race-proof-team-formation/actions/runs/41860229287) (passed).
 
 ## Recorded benchmark
 
