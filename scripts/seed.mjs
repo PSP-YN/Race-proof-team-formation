@@ -42,10 +42,10 @@ try{
  const teams=[],memberships=[];
  for(let i=0;i<2000;i++){
   const id=new ObjectId(),base=i*5,teamSkills=[skills[i%skills.length],skills[(i+4)%skills.length],skills[(i+8)%skills.length]];
-  teams.push({_id:id,hackathonId,name:"Crew "+String(i+1).padStart(4,"0"),description:"A seeded team for testing discovery, matching and capacity controls.",skills:teamSkills,minSize:2,maxSize:5,leaderId:userDocs[base]._id.toString(),memberCount:4,status:"open",createdAt:new Date(Date.now()-i*1000),updatedAt:new Date()});
-  for(let j=0;j<4;j++)memberships.push({hackathonId,teamId:id,userId:userDocs[base+j]._id.toString(),name:userDocs[base+j].name,skills:[skills[(base+j)%skills.length]],joinedAt:new Date(Date.now()-j*1000)});
+  teams.push({_id:id,hackathonId,name:"Crew "+String(i+1).padStart(4,"0"),description:"A seeded team for testing discovery, matching and capacity controls.",skills:teamSkills,minSize:2,maxSize:5,leaderId:userDocs[base]._id.toString(),memberCount:5,status:"open",createdAt:new Date(Date.now()-i*1000),updatedAt:new Date()});
+  for(let j=0;j<5;j++)memberships.push({hackathonId,teamId:id,userId:userDocs[base+j]._id.toString(),name:userDocs[base+j].name,skills:[skills[(base+j)%skills.length]],joinedAt:new Date(Date.now()-j*1000)});
  }
  await db.collection("teams").insertMany(teams,{ordered:false});
  for(let i=0;i<memberships.length;i+=1000)await db.collection("memberships").insertMany(memberships.slice(i,i+1000),{ordered:false});
- console.log(JSON.stringify({hackathonId,users:10000,teams:2000,memberships:8000,openSeats:2000},null,2));
+ console.log(JSON.stringify({hackathonId,users:10000,teams:2000,memberships:10000,openSeats:4000},null,2));
 }finally{await client.close();}

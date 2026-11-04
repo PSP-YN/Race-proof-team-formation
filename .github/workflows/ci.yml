@@ -38,7 +38,7 @@ jobs:
         run: npm ci --no-audit --no-fund
       - name: Enforce dependency audit
         run: npm audit --audit-level=moderate
-      - name: Verify 10k participant and 2k team seed
+      - name: Verify 10k participants, 2k teams and 10k memberships seed
         run: |
           SEED_DEMO_PASSWORD="$(openssl rand -hex 32)" ALLOW_DEMO_SEED=true npm run seed
           docker exec crewforge-mongo mongosh crewforge --quiet --eval '
@@ -48,7 +48,7 @@ jobs:
             const teams=db.teams.countDocuments({hackathonId:h});
             const memberships=db.memberships.countDocuments({hackathonId:h});
             printjson({users,verified,teams,memberships});
-            if(users!==10000||verified!==10000||teams!==2000||memberships!==8000) quit(1);
+            if(users!==10000||verified!==10000||teams!==2000||memberships!==10000) quit(1);
           '
         env:
           MONGODB_URI: mongodb://127.0.0.1:27017/crewforge?replicaSet=rs0

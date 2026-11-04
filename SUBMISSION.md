@@ -21,7 +21,7 @@
 
 | Requirement | Evidence | Status |
 |---|---|---|
-| 10,000 participants / 2,000 teams seed | CI seed verification in `.github/workflows/ci.yml` | Implemented in CI |
+| 10,000 seeded participants / 2,000 teams / 10,000 memberships | CI seed verification in `.github/workflows/ci.yml` | Implemented in CI |
 | 50 concurrent leader approvals for one final seat | `tests/integration/race.test.ts` | Automated integration test |
 | One membership per participant per hackathon | Unique compound index + transaction | Implemented |
 | Idempotent retries | Request-bound idempotency records | Implemented |
