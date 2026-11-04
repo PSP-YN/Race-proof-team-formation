@@ -44,7 +44,7 @@
 - Next.js production build: passed.
 - `npm audit --audit-level=moderate`: 0 vulnerabilities.
 
-These checks were run locally before merge. The final main-branch CI run is [41673400104](https://github.com/PSP-YN/Race-proof-team-formation/actions/runs/41673400104), and the CodeQL workflow was checked separately. The demo-only commit is also pushed to main.
+These checks were run locally before merge. The latest main-branch CI run for the deployed demo source commit `f847946` is [41843530011](https://github.com/PSP-YN/Race-proof-team-formation/actions/runs/41843530011) (passed). CodeQL is [41843529892](https://github.com/PSP-YN/Race-proof-team-formation/actions/runs/41843529892) (passed). The later documentation-only updates do not change application code.
 
 ## Recorded benchmark
 
@@ -74,7 +74,7 @@ Email verification and recovery flows require a configured Resend sender. Use pr
 
 ## Demo deployment boundary
 
-The static demo is manually deployed to Vercel from `demo/` as project `crewforge-demo`. It is public and does not use API routes, backend services, secrets, or database access. Automatic Vercel Git deployments remain disabled in `vercel.json`; Preview deployments are disabled for the demo project. The original full-stack Next.js project remains **not deployed** and its production gates in [docs/production-readiness.md](docs/production-readiness.md) are not satisfied. Do not describe the static demo as a live authentication, invite, email, database, or concurrency service.
+The static demo is manually deployed to Vercel from `demo/` as project `crewforge-demo`. Latest production deployment: `dpl_2Xnc5fMbxFWRgbK6iCW8FCtP7XAY`, source commit `f847946`, state **Ready**, public alias [crewforge-demo-pspyn.vercel.app](https://crewforge-demo-pspyn.vercel.app/). It does not use API routes, backend services, secrets, or database access. Automatic Vercel Git deployments remain disabled in `vercel.json`; Preview deployments are disabled for the demo project. The original full-stack Next.js project remains **not deployed** and its production gates in [docs/production-readiness.md](docs/production-readiness.md) are not satisfied. Do not describe the static demo as a live authentication, invite, email, database, or concurrency service.
 
 ## Submission integrity
 
