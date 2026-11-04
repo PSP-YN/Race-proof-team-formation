@@ -91,7 +91,7 @@ npm audit --audit-level=moderate
 
 The MongoDB integration test requires a replica set through `MONGODB_TEST_URI`. CI provisions a disposable replica set, validates a dataset of 10,000 users / 2,000 teams / 8,000 memberships, runs the 50-contender final-seat race test, builds the production application, executes smoke checks, and runs a 100-VU / 30-second k6 board test.
 
-Latest completed pre-merge CI benchmark: [run 41523345249](https://github.com/PSP-YN/Race-proof-team-formation/actions/runs/41523345249). It recorded 3,000 requests, 97.75 requests/second, 14.03 ms average response, 10.77 ms p95, 0% HTTP failures, and 6,000/6,000 board checks passed. These are GitHub-runner measurements against a disposable local MongoDB replica set, not production-region measurements. See [performance report](docs/performance.md).
+Latest main-branch CI benchmark: [run 41673400104](https://github.com/PSP-YN/Race-proof-team-formation/actions/runs/41673400104). It recorded 3,000 requests, 97.84 requests/second, 13.69 ms average response, 11.01 ms p95, 0% HTTP failures, and 6,000/6,000 board checks passed. These are GitHub-runner measurements against a disposable local MongoDB replica set, not production-region measurements. See [performance report](docs/performance.md).
 
 ## Deployment status and production gates
 
@@ -112,7 +112,9 @@ Follow [production readiness](docs/production-readiness.md) for the runbook and 
 
 ### No-backend judging demo
 
-A standalone static, interactive demo is available in [`demo/index.html`](demo/index.html). It does not call APIs, use a database, require login, load remote assets, or need secrets. Team creation, join/leave, skill matching and reset are simulated in browser JavaScript and saved only in local browser storage. It is intentionally not the live production service.
+**Public demo:** [crewforge-demo-pspyn.vercel.app](https://crewforge-demo-pspyn.vercel.app/) · [Alternate Vercel alias](https://crewforge-demo-sandy.vercel.app/)
+
+The standalone static demo source is [`demo/index.html`](demo/index.html). It does not call APIs, use a database, require login, load remote assets, or need secrets. Team creation, join/leave, skill matching and reset are simulated in browser JavaScript and saved only in local browser storage. It is intentionally not the live full-stack service; the race-safety guarantee is separately verified by MongoDB replica-set integration tests.
 
 The full-stack application demo remains available via the five-minute walkthrough in [docs/demo-runbook.md](docs/demo-runbook.md). The demo guide includes setup, test-account preparation, technical explanation, recovery steps, and claims to avoid. The reviewer-first [submission pack](SUBMISSION.md) links the one-page design brief, measured performance evidence, test matrix and [walkthrough video script](docs/walkthrough-video-script.md). The challenge-specific explanation and interview preparation are in [docs/challenge-submission.md](docs/challenge-submission.md).
 

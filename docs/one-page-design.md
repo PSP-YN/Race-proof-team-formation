@@ -1,4 +1,6 @@
-# CrewForge — PS1 one-page design brief
+# CrewForge
+
+**Public interactive demo:** https://crewforge-demo-pspyn.vercel.app/ — static browser-only; no backend/API. The production race guarantee is demonstrated by the repository integration tests, not by this simulation. — PS1 one-page design brief
 
 **Challenge:** Hack4Hack Crew Hiring Challenge 2026 · PS1: Race-proof team formation at scale  
 **Repository:** https://github.com/PSP-YN/Race-proof-team-formation

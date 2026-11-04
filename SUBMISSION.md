@@ -4,6 +4,7 @@
 **Problem statement:** PS1 — Race-proof team formation at scale  
 **Submission deadline:** 15 November 2026, 11:59 PM IST  
 **Repository:** https://github.com/PSP-YN/Race-proof-team-formation
+**Public demo:** https://crewforge-demo-pspyn.vercel.app/ (static browser-only demo; no backend/API)
 
 ## Reviewer entry points
 
@@ -28,11 +29,11 @@
 | Authentication and secure invite lifecycle | Auth routes, hashed expiring tokens, leader checks | Implemented; staging verification outstanding |
 | Audit log | Audit collection and transactional writes | Implemented |
 | Explainable skill recommendations | Matching helper and UI | Implemented |
-| CI and security scanning | GitHub Actions CI and CodeQL workflows | Configured; verify latest main-branch run before submission |
-| 100 concurrent users / board p95 under 200 ms | [Performance report](docs/performance.md) | CI benchmark recorded: 100 VUs, 10.77 ms p95, 0% HTTP failures |
+| CI and security scanning | [Main CI](https://github.com/PSP-YN/Race-proof-team-formation/actions/workflows/ci.yml) and [CodeQL](https://github.com/PSP-YN/Race-proof-team-formation/actions/workflows/codeql.yml) | Workflows configured; re-check latest main runs before submitting |
+| 100 concurrent users / board p95 under 200 ms | [Performance report](docs/performance.md) | CI benchmark recorded: 100 VUs, 11.01 ms p95, 0% HTTP failures |
 | At least 20 API tests | [Test strategy](docs/test-strategy.md), `tests/api/route-contracts.test.ts` | **32 route-handler API contract tests**; database/provider end-to-end checks remain separate |
 | Responsive, keyboard-accessible UI | UI implementation | Needs a final manual accessibility and mobile pass |
-| Live URL | Challenge requirement | **Not supplied** — no deployment was performed, per project owner instruction |
+| Live URL | Challenge requirement | **Provided:** [CrewForge static demo](https://crewforge-demo-pspyn.vercel.app/). This is a public browser-only simulation; the full-stack service is not deployed. |
 | One-page design doc | [One-page design brief](docs/one-page-design.md) | Prepared |
 | Walkthrough video (up to 5 minutes) | [Recording script](docs/walkthrough-video-script.md) | Script prepared; video recording/upload still required |
 
@@ -43,7 +44,7 @@
 - Next.js production build: passed.
 - `npm audit --audit-level=moderate`: 0 vulnerabilities.
 
-These checks were run locally on the submission-readiness branch. Verify GitHub Actions again after the PR is merged; local success is not a substitute for the final main-branch CI record.
+These checks were run locally before merge. The final main-branch CI run is [41673400104](https://github.com/PSP-YN/Race-proof-team-formation/actions/runs/41673400104), and the CodeQL workflow was checked separately. The demo-only commit is also pushed to main.
 
 ## Recorded benchmark
 
@@ -64,16 +65,16 @@ Email verification and recovery flows require a configured Resend sender. Use pr
 
 ## Before submitting
 
-- [ ] Merge the submission-readiness branch after CI passes, then verify the latest `main` CI and CodeQL runs are green; link the exact run in the submission form.
+- [ ] Re-check the latest `main` CI and CodeQL runs immediately before submission; include the exact CI run link.
 - [ ] Complete a keyboard-only pass and mobile viewport pass; record any remaining accessibility limitations.
 - [ ] Record the five-minute walkthrough from a disposable local environment and upload it.
 - [ ] Re-check all repository links, setup steps and public visibility from a signed-out browser.
 - [ ] Complete the organizer's submission form before the deadline.
-- [ ] If no deployment is authorized, disclose that the live-URL criterion is unmet. Do not use the Vercel project hostname as a live URL until a successful deployment actually exists.
+- [ ] Confirm the public static demo URL opens in a signed-out/incognito browser and disclose that the full-stack backend is not deployed.
 
-## Deployment suppression
+## Demo deployment boundary
 
-Per the project owner's instruction, automatic Vercel Git deployments are disabled in `vercel.json`, and Preview deployments are disabled in the Vercel project settings. No live deployment is being created for this submission. Re-enable automatic deployments only after the owner explicitly requests deployment and the production gates in [docs/production-readiness.md](docs/production-readiness.md) are satisfied.
+The static demo is manually deployed to Vercel from `demo/` as project `crewforge-demo`. It is public and does not use API routes, backend services, secrets, or database access. Automatic Vercel Git deployments remain disabled in `vercel.json`; Preview deployments are disabled for the demo project. The original full-stack Next.js project remains **not deployed** and its production gates in [docs/production-readiness.md](docs/production-readiness.md) are not satisfied. Do not describe the static demo as a live authentication, invite, email, database, or concurrency service.
 
 ## Submission integrity
 
