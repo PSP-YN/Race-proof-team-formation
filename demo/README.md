@@ -9,3 +9,5 @@ This folder contains the no-backend, no-API interactive demo intended for hackat
 - Reset Demo clears the browser's CrewForge demo state and restores fixture teams.
 
 The full Next.js + MongoDB implementation remains in the repository root. This static demo is not a production account/team service and must not be described as such.
+
+The deployed page also includes a reviewer guide covering the transaction design, race-test assertions, requirement coverage, CI load-test evidence, engineering trade-offs and known implementation gaps.

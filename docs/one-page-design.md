@@ -50,13 +50,13 @@ MongoDB transactions and unique indexes were chosen over client-side checks, in-
 
 The repository documents a CI benchmark with 10,000 users, 2,000 teams and 8,000 memberships; 100 virtual users for 30 seconds; 3,000 requests; 97.84 requests/second; 11.01 ms p95; and 0% HTTP failures. The environment was a GitHub-hosted runner with a disposable local MongoDB replica set. It is a regression benchmark, **not** a production-region or deployed-service measurement.
 
-The automated suite includes 32 route-handler API contract tests, 9 unit tests and four MongoDB replica-set integration tests, including the 50-contender race. API tests use real `NextRequest` objects and the actual route handlers while isolating database/auth/security dependencies with mocks; they are not full deployed end-to-end tests. Provider delivery, full database-backed invite lifecycle and broader staging authorization/abuse checks remain manual release checks.
+The automated suite includes 32 route-handler API contract tests, 9 unit tests and four MongoDB replica-set integration tests, including the 50-contender race. The current application supports direct joins and invite acceptance; it does not yet implement a leader-moderated pending join-request queue or leader-driven member removal. API tests use real `NextRequest` objects and the actual route handlers while isolating database/auth/security dependencies with mocks; they are not full deployed end-to-end tests. Provider delivery, full database-backed invite lifecycle and broader staging authorization/abuse checks remain manual release checks.
 
 ## What I would do with one more week
 
-1. Add at least 20 automated API-level tests for auth/verification/recovery, team CRUD, join/leave, idempotency, invite lifecycle, authorization, origin validation, rate limits, audit behavior and failure handling.
-2. Run the full black-box matrix against an isolated staging environment and attach reproducible results.
-3. Add a 15–30 minute soak test and a controlled burst test against a production-like database; report p50/p95/p99, errors and database connection behavior.
-4. Add operational alerting for email delivery, database saturation and abuse thresholds, then rehearse backup restore and rollback.
+1. Implement the missing pending join-request workflow (leader accept/decline) and leader-driven member removal, then add route-level and database integration tests for authorization and race behavior.
+2. Add optimistic UI rollback for 409 conflicts, Docker Compose for reproducible local setup, and a server-kill-during-join chaos test.
+3. Deploy a staging backend with a replica-set database and verified email provider; run the outstanding invite, role authorization, origin/rate-limit, SSE multi-session and failure-mode matrix.
+4. Run a 15–30 minute soak and controlled burst test against the deployed environment; capture p50/p95/p99, throughput, errors and database pool behavior. Add tracing/metrics, alerting, backup/restore rehearsal and rollback procedure.
 
-**Submission honesty:** the application has not been deployed. The challenge asks for a live URL; this brief does not substitute for that requirement.
+**Submission honesty:** the full-stack application has not been deployed. The public URL is a static browser-only demo and does not satisfy the deployed-backend requirement.
