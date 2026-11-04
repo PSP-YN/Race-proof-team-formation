@@ -10,7 +10,7 @@
 - users: normalized unique email, name, bcrypt password hash.
 - teams: hackathon, team metadata, leader, status and authoritative memberCount.
 - memberships: one participant per hackathon, enforced by unique (hackathonId,userId); ordered by teamId/joinedAt.
-- idempotency: unique (userId,key), with the target hackathon and team stored so a replay cannot be silently reused for a different action.
+- joinRequests: moderated requests with unique (userId,idempotencyKey), plus a partial unique (hackathonId,userId) index while status=pending; indexed by (teamId,status,createdAt).
 - invites: SHA-256 token hashes, expiry, used/revoked timestamps and TTL cleanup.
 - audit: action timeline.
 - rateLimits: persistent fixed-window counters with TTL cleanup.
@@ -18,7 +18,11 @@
 - securityEvents: hashed-identity abuse telemetry with a 30-day TTL.
 
 ## Race-safe membership
-Joining inserts the membership and conditionally increments memberCount inside one MongoDB transaction. The conditional update only succeeds while memberCount < maxSize. The unique membership index prevents a participant joining two teams in one hackathon. Transaction write conflicts are retried by the MongoDB driver. A duplicate retry with the same idempotency key and same team returns a replay success; reuse of that key for another team returns 409.
+A participant requesting to join creates a pending request; it does not reserve a seat. The leader queue is readable only by the current leader. Accept/decline is transactional. Accept inserts the membership, conditionally increments memberCount, transitions the request and appends the audit event in one MongoDB transaction. The partial unique pending-request index prevents the same participant from holding simultaneous pending requests for multiple teams in one hackathon. The legacy POST /join endpoint now creates a request as well, so it cannot bypass approval.
+
+Direct membership mutations (invite acceptance and leader-approved requests) insert the membership and conditionally increment memberCount inside one MongoDB transaction. The conditional update only succeeds while memberCount < maxSize. The unique membership index prevents a participant joining two teams in one hackathon. Transaction write conflicts are retried by the MongoDB driver. A duplicate retry with the same idempotency key and same team returns a replay success; reuse of that key for another team returns 409.
+
+The leader-only member-removal route deletes a selected non-leader membership, decrements memberCount, cancels that participant’s pending requests in the hackathon and appends an audit event in one transaction.
 
 Leaving deletes the member record and recomputes memberCount in a transaction. If the leader leaves, leadership passes to the earliest remaining member. If the last member leaves, the team is marked deleted and its invites are revoked.
 
@@ -27,7 +31,8 @@ Invite acceptance checks an opaque random token by its SHA-256 hash, expiry, rev
 ## API surface
 - GET /api/auth; POST /api/auth with register, login or logout action.
 - GET /api/teams?hackathonId=...; POST /api/teams.
-- POST /api/teams/:teamId/join; POST /api/teams/:teamId/leave.
+- POST /api/teams/:teamId/join (legacy path; creates a moderated request); POST /api/teams/:teamId/requests; GET /api/teams/:teamId/requests; PATCH /api/teams/:teamId/requests/:requestId.
+- GET /api/teams/:teamId/members; DELETE /api/teams/:teamId/members/:userId; POST /api/teams/:teamId/leave.
 - PATCH /api/teams/:teamId for leader-only settings.
 - POST /api/teams/:teamId/invites; GET/DELETE /api/teams/:teamId/invites; POST /api/invites/:token.
 - POST /api/auth/verify, /api/auth/verification, /api/auth/recovery and /api/auth/reset.
@@ -50,4 +55,4 @@ Run npm run seed against a disposable database to create 10,000 demo users, 2,00
 - npm run seed (disposable database only)
 - BASE_URL=https://your-deployment.example npm run loadtest (requires k6)
 
-The integration race test sends 50 concurrent contenders for one remaining seat and asserts exactly one membership wins. CI also executes scripts/smoke.mjs against the production Next.js server to verify the health route, public board JSON and initial SSE connection before running k6. CI seeds and verifies the 10k/2k/8k dataset, runs the race test, and executes the 100-VU, 30-second k6 board test. The latest completed pre-merge CI result is documented in docs/performance.md (p95 10.77 ms with 0% HTTP failures on the GitHub-hosted runner). See docs/performance.md. This is not a deployed-region measurement; repeat against the production URL.
+The integration race test creates 50 pending join requests for one remaining seat, then submits 50 leader approvals concurrently and asserts exactly one approval succeeds. CI also executes scripts/smoke.mjs against the production Next.js server to verify the health route, public board JSON and initial SSE connection before running k6. CI seeds and verifies the 10k/2k/8k dataset, runs the race test, and executes the 100-VU, 30-second k6 board test. The latest completed pre-merge CI result is documented in docs/performance.md (p95 10.77 ms with 0% HTTP failures on the GitHub-hosted runner). See docs/performance.md. This is not a deployed-region measurement; repeat against the production URL.

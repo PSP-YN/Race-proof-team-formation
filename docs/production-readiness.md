@@ -2,7 +2,7 @@
 
 ## Current release status
 
-PR #2 has been merged into `main` at `5fee2fd60092cbb6ea3bac14caca4f4bfc7bce87`. The PR head passed CI and CodeQL; post-merge CI and CodeQL are running on the squash commit. The repository is a CI-verified release candidate, not a production deployment. Production launch still requires the external services, secrets, domain, and deployed tests listed below.
+The application now includes the moderated join-request queue, leader accept/decline transactions, and leader-only member removal. These workflows pass the local MongoDB 7 replica-set integration suite. The existing Vercel project is linked, but its Production environment currently has only JWT_SECRET, NEXT_PUBLIC_APP_URL and NEXT_PUBLIC_HACKATHON_ID configured. MONGODB_URI, RESEND_API_KEY and EMAIL_FROM are absent, so a working full-stack deployment and staging tests are blocked until those external credentials are added. Do not deploy a placeholder database URI or skip email verification.
 
 ## Required services
 

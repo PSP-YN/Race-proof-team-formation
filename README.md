@@ -12,7 +12,8 @@ CrewForge helps participants discover teams, create crews, and join without dupl
 
 - Participant registration, email verification, sign-in, sign-out, and password recovery.
 - Team creation, capacity management, leader-controlled settings, and team discovery.
-- Transactional join/leave operations, leadership succession, and duplicate-membership protection.
+- Moderated join requests: participants request a seat; only the current leader can accept or decline.
+- Leader-only member removal, transactional leave, leadership succession, and duplicate-membership protection.
 - Invitation creation, listing, revocation, expiry, and single-use acceptance.
 - Skill-complementarity recommendations with an explainable score.
 - MongoDB change-stream Server-Sent Events (SSE), bounded stream lifetime, and client refresh fallback.
@@ -23,11 +24,13 @@ CrewForge helps participants discover teams, create crews, and join without dupl
 
 CrewForge treats membership as a concurrency and consistency problem, not a client-side form-validation problem.
 
-1. A unique database index enforces one membership per participant per hackathon.
-2. A conditional capacity reservation and membership insertion happen in one MongoDB transaction.
+1. A unique database index enforces one membership per participant per hackathon; a partial unique index allows only one pending join request per participant per hackathon.
+2. Only the current leader can accept or decline. Acceptance, seat reservation, membership insertion, request status and audit event commit in one MongoDB transaction.
 3. Request-bound idempotency keys make retries safe and reject conflicting reuse.
-4. Invitation tokens are random, hashed at rest, expiring, revocable, and consumed transactionally.
-5. Leader departure, succession, invite invalidation, and membership changes preserve the intended lifecycle invariants.
+4. Leader-only member removal, leadership succession, last-member team closure and invite invalidation preserve lifecycle invariants.
+5. Invitation tokens are random, hashed at rest, expiring, revocable, and consumed transactionally.
+
+The replica-set integration test creates 50 pending requests and executes 50 leader approvals concurrently for one remaining seat. Exactly one approval commits; 49 are rejected and the stored member count remains correct.
 
 See [architecture and correctness notes](docs/architecture.md) for the transaction model, [engineering decisions](docs/engineering-decisions.md) for the technology trade-offs, [threat model](docs/threat-model.md) for the security boundaries, and [test strategy](docs/test-strategy.md) for the verification matrix.
 

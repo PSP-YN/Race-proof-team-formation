@@ -28,6 +28,10 @@ vi.mock("next/headers", () => ({ cookies: mocks.cookies }));
 import { GET as authGet, POST as authPost } from "../../src/app/api/auth/route";
 import { GET as teamsGet, POST as teamsPost } from "../../src/app/api/teams/route";
 import { POST as joinPost } from "../../src/app/api/teams/[teamId]/join/route";
+import { GET as requestsGet, POST as requestsPost } from "../../src/app/api/teams/[teamId]/requests/route";
+import { PATCH as requestDecisionPatch } from "../../src/app/api/teams/[teamId]/requests/[requestId]/route";
+import { GET as membersGet } from "../../src/app/api/teams/[teamId]/members/route";
+import { DELETE as memberDelete } from "../../src/app/api/teams/[teamId]/members/[userId]/route";
 import { GET as healthGet } from "../../src/app/api/health/route";
 
 const user = { userId: "user-123", email: "builder@example.test", name: "Builder", sessionVersion: 0 };
@@ -246,6 +250,30 @@ describe("team join API contracts", () => {
     const response = await joinPost(request(`/api/teams/${teamId}/join`, "POST", { hackathonId, idempotencyKey: "request-123", skills: Array.from({ length: 21 }, (_, i) => `skill-${i}`) }), context);
     expect(response.status).toBe(400);
   });
+});
+
+describe("moderated join request API contracts", () => {
+  const teamId = "507f1f77bcf86cd799439011";
+  const requestId = "507f1f77bcf86cd799439012";
+  const teamContext = { params: Promise.resolve({ teamId }) };
+  it("POST requests requires authentication", async () => { expect((await requestsPost(request("/api/teams/" + teamId + "/requests", "POST", {}), teamContext)).status).toBe(401); });
+  it("POST requests rejects invalid team ids", async () => { mocks.requireSession.mockResolvedValue(user); expect((await requestsPost(request("/api/teams/invalid/requests", "POST", {}), { params: Promise.resolve({ teamId: "invalid" }) })).status).toBe(400); });
+  it("POST requests rejects missing idempotency keys", async () => { mocks.requireSession.mockResolvedValue(user); expect((await requestsPost(request("/api/teams/" + teamId + "/requests", "POST", { hackathonId }), teamContext)).status).toBe(400); });
+  it("POST requests applies mutation rate limits", async () => { mocks.requireSession.mockResolvedValue(user); mocks.guardMutation.mockResolvedValue(NextResponse.json({ error: "Too many requests" }, { status: 429 })); expect((await requestsPost(request("/api/teams/" + teamId + "/requests", "POST", {}), teamContext)).status).toBe(429); });
+  it("GET requests denies non-leaders", async () => { mocks.requireSession.mockResolvedValue(user); expect((await requestsGet(request("/api/teams/" + teamId + "/requests"), teamContext)).status).toBe(403); });
+  it("PATCH request decisions requires authentication", async () => { expect((await requestDecisionPatch(request("/api/teams/" + teamId + "/requests/" + requestId, "PATCH", { decision: "accept" }), { params: Promise.resolve({ teamId, requestId }) })).status).toBe(401); });
+  it("PATCH request decisions rejects unsupported actions", async () => { mocks.requireSession.mockResolvedValue(user); expect((await requestDecisionPatch(request("/api/teams/" + teamId + "/requests/" + requestId, "PATCH", { decision: "approve" }), { params: Promise.resolve({ teamId, requestId }) })).status).toBe(400); });
+  it("PATCH request decisions rejects malformed ids", async () => { mocks.requireSession.mockResolvedValue(user); expect((await requestDecisionPatch(request("/api/teams/" + teamId + "/requests/bad", "PATCH", { decision: "accept" }), { params: Promise.resolve({ teamId, requestId: "bad" }) })).status).toBe(400); });
+});
+
+describe("leader member-management API contracts", () => {
+  const teamId = "507f1f77bcf86cd799439011";
+  const ctx = { params: Promise.resolve({ teamId }) };
+  it("GET members requires authentication", async () => { expect((await membersGet(request("/api/teams/" + teamId + "/members"), ctx)).status).toBe(401); });
+  it("GET members denies non-leaders", async () => { mocks.requireSession.mockResolvedValue(user); expect((await membersGet(request("/api/teams/" + teamId + "/members"), ctx)).status).toBe(403); });
+  it("DELETE member requires authentication", async () => { expect((await memberDelete(request("/api/teams/" + teamId + "/members/target", "DELETE"), { params: Promise.resolve({ teamId, userId: "target" }) })).status).toBe(401); });
+  it("DELETE member rejects malformed team ids", async () => { mocks.requireSession.mockResolvedValue(user); expect((await memberDelete(request("/api/teams/bad/members/target", "DELETE"), { params: Promise.resolve({ teamId: "bad", userId: "target" }) })).status).toBe(400); });
+  it("DELETE member applies mutation rate limits", async () => { mocks.requireSession.mockResolvedValue(user); mocks.guardMutation.mockResolvedValue(NextResponse.json({ error: "Too many requests" }, { status: 429 })); expect((await memberDelete(request("/api/teams/" + teamId + "/members/target", "DELETE"), { params: Promise.resolve({ teamId, userId: "target" }) })).status).toBe(429); });
 });
 
 describe("health API contracts", () => {

@@ -22,18 +22,18 @@
 | Requirement | Evidence | Status |
 |---|---|---|
 | 10,000 participants / 2,000 teams seed | CI seed verification in `.github/workflows/ci.yml` | Implemented in CI |
-| 50 contenders for one final seat | `tests/integration/race.test.ts` | Automated integration test |
+| 50 concurrent leader approvals for one final seat | `tests/integration/race.test.ts` | Automated integration test |
 | One membership per participant per hackathon | Unique compound index + transaction | Implemented |
 | Idempotent retries | Request-bound idempotency records | Implemented |
 | Real-time board updates | MongoDB change streams + bounded SSE | Implemented; local/CI smoke evidence |
 | Authentication and secure invite lifecycle | Auth routes, hashed expiring tokens, leader checks | Implemented; staging verification outstanding |
-| Pending join requests with leader accept/decline | Not present in current API/UI | **Not implemented** |
-| Leader-driven member removal | Members can leave themselves; no leader remove-member action | **Not implemented** |
+| Pending join requests with leader accept/decline | joinRequests collection, leader-only decision route, transactional membership insert and audit event | Implemented + replica-set integration tests |
+| Leader-driven member removal | Leader-only DELETE member route, atomic membership/count update, request cancellation and audit | Implemented + replica-set integration tests |
 | Audit log | Audit collection and transactional writes | Implemented |
 | Explainable skill recommendations | Matching helper and UI | Implemented |
 | CI and security scanning | [Main CI](https://github.com/PSP-YN/Race-proof-team-formation/actions/workflows/ci.yml) and [CodeQL](https://github.com/PSP-YN/Race-proof-team-formation/actions/workflows/codeql.yml) | Workflows configured; re-check latest main runs before submitting |
 | 100 concurrent users / board p95 under 200 ms | [Performance report](docs/performance.md) | CI benchmark recorded: 100 VUs, 11.01 ms p95, 0% HTTP failures |
-| At least 20 API tests | [Test strategy](docs/test-strategy.md), `tests/api/route-contracts.test.ts` | **32 route-handler API contract tests**; database/provider end-to-end checks remain separate |
+| At least 20 API tests | [Test strategy](docs/test-strategy.md), `tests/api/route-contracts.test.ts` | **45 route-handler API contract tests**; database/provider end-to-end checks remain separate |
 | Responsive, keyboard-accessible UI | Static demo browser QA: dialog semantics, Escape handling, create/join, 390px viewport | Browser QA passed; full React app needs separate staging pass |
 | Live URL | Challenge requirement | **Provided:** [CrewForge static demo](https://crewforge-demo-pspyn.vercel.app/). This is a public browser-only simulation; the full-stack service is not deployed. |
 | One-page design doc | [One-page design brief](docs/one-page-design.md) | Prepared |
@@ -44,7 +44,7 @@
 ## Local verification on the submission-readiness branch
 
 - TypeScript typecheck: passed.
-- Vitest: **45/45 passed** across 3 files, including 32 route-handler API contract tests and four MongoDB replica-set integration tests.
+- Vitest: **65/65 passed (45 API contract, 9 unit, 11 MongoDB integration)** across 3 files, including 45 route-handler API contract tests and 11 MongoDB replica-set integration tests.
 - Next.js production build: passed.
 - `npm audit --audit-level=moderate`: 0 vulnerabilities.
 
@@ -74,11 +74,11 @@ Email verification and recovery flows require a configured Resend sender. Use pr
 - [ ] Record the five-minute walkthrough from a disposable local environment and upload it.
 - [ ] Re-check all repository links, setup steps and public visibility from a signed-out browser.
 - [ ] Complete the organizer's submission form before the deadline.
-- [ ] Confirm the public static demo URL opens in a signed-out/incognito browser and disclose that the full-stack backend is not deployed.
+- [ ] Configure MongoDB Atlas and Resend production credentials, deploy the full-stack app, then complete the staging verification matrix. Confirm the public static demo URL opens in a signed-out/incognito browser and disclose its simulation boundary.
 
 ## Demo deployment boundary
 
-The static demo is manually deployed to Vercel from `demo/` as project `crewforge-demo`. Latest production deployment: `dpl_H2VreKqtgNiV1LFegco86R3rBhCG`, source commit `f847946` plus the latest guide-only redeployment, state **Ready**, public alias [crewforge-demo-pspyn.vercel.app](https://crewforge-demo-pspyn.vercel.app/). It does not use API routes, backend services, secrets, or database access. Automatic Vercel Git deployments remain disabled in `vercel.json`; Preview deployments are disabled for the demo project. The current full-stack Next.js project remains **not deployed** and its production gates in [docs/production-readiness.md](docs/production-readiness.md) are not satisfied. Do not describe the static demo as a live authentication, invite, email, database, or concurrency service.
+The static demo is manually deployed to Vercel from `demo/` as project `crewforge-demo`. Latest production deployment: `dpl_H2VreKqtgNiV1LFegco86R3rBhCG`, source commit `f847946` plus the latest guide-only redeployment, state **Ready**, public alias [crewforge-demo-pspyn.vercel.app](https://crewforge-demo-pspyn.vercel.app/). It does not use API routes, backend services, secrets, or database access. Automatic Vercel Git deployments remain disabled in `vercel.json`; Preview deployments are disabled for the demo project. The current full-stack Next.js project remains **not deployed** because production MongoDB and Resend credentials are not configured in Vercel; its production gates in [docs/production-readiness.md](docs/production-readiness.md) are not satisfied. Do not describe the static demo as a live authentication, invite, email, database, or concurrency service.
 
 ## Submission integrity
 

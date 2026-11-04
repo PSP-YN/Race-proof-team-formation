@@ -4,64 +4,44 @@ import { z } from "zod";
 import { database, mongoClient } from "@/lib/db";
 import { requireSession } from "@/lib/auth";
 import { guardMutation } from "@/lib/security";
-import { joinTeamTransaction } from "@/lib/team-membership";
+import { requestJoinTransaction } from "@/lib/team-requests";
 
-// Membership, capacity, idempotency and audit state are committed atomically.
-// The unique membership index is the final guard against cross-team double membership.
+// Legacy join endpoint intentionally creates a moderated request, never direct membership.
 export async function POST(req: NextRequest, ctx: { params: Promise<{ teamId: string }> }) {
   let user;
-  try {
-    user = await requireSession();
-  } catch {
-    return NextResponse.json({ error: "Sign in required" }, { status: 401 });
-  }
-
+  try { user = await requireSession(); } catch { return NextResponse.json({ error: "Sign in required" }, { status: 401 }); }
   const blocked = await guardMutation(req, "team-join", 10000, 60_000, user.userId, 10);
   if (blocked) return blocked;
-
   const { teamId } = await ctx.params;
   if (!ObjectId.isValid(teamId)) return NextResponse.json({ error: "Invalid team id" }, { status: 400 });
-
   const parsed = z.object({
-    hackathonId: z.string().min(1),
+    hackathonId: z.string().trim().min(1).max(100),
     idempotencyKey: z.string().min(8).max(120),
-    skills: z.array(z.string().max(40)).max(20).default([]),
-  }).safeParse(await req.json().catch(() => ({})));
+    skills: z.array(z.string().trim().min(1).max(40)).max(20).default([]),
+  }).safeParse(await req.json().catch(() => null));
   if (!parsed.success) return NextResponse.json({ error: "Invalid join request" }, { status: 400 });
-
-  const data = parsed.data;
-  const db = await database();
-  const id = new ObjectId(teamId);
-
   try {
-    await joinTeamTransaction(await mongoClient(), db, {
-      hackathonId: data.hackathonId,
-      teamId: id,
-      userId: user.userId,
-      name: user.name,
-      skills: data.skills,
-      idempotencyKey: data.idempotencyKey,
+    const db = await database();
+    const result = await requestJoinTransaction(await mongoClient(), db, {
+      ...parsed.data, teamId: new ObjectId(teamId), userId: user.userId, name: user.name,
     });
-    return NextResponse.json({ ok: true });
+    return NextResponse.json({ ok: true, ...result }, { status: result.replayed ? 200 : 201 });
   } catch (error) {
     const message = error instanceof Error ? error.message : "";
-    if (message.includes("duplicate key")) {
-      const replay = await db.collection("idempotency").findOne({ userId: user.userId, key: data.idempotencyKey });
-      if (replay && replay.hackathonId === data.hackathonId && replay.teamId?.toString() === id.toString()) {
-        return NextResponse.json({ ok: true, replayed: true });
-      }
-    }
-
-    const errors: Record<string, [string, number]> = {
-      TEAM_NOT_FOUND: ["Team not found or closed", 404],
-      TEAM_FULL: ["Team is full", 409],
-      IDEMPOTENCY_CONFLICT: ["This idempotency key was already used for a different join request", 409],
+    const map: Record<string, [string, number]> = {
+      TEAM_NOT_FOUND: ["Team not found or closed", 404], TEAM_FULL: ["Team is full", 409],
+      ALREADY_MEMBER: ["You already belong to a team in this hackathon", 409],
+      PENDING_REQUEST_EXISTS: ["You already have a pending request for another team in this hackathon", 409],
+      IDEMPOTENCY_CONFLICT: ["This idempotency key was used for a different request", 409],
     };
-    const [messageText, status] = errors[message] ?? (
-      message.includes("duplicate key")
-        ? ["You already belong to a team in this hackathon", 409]
-        : ["Join failed; retry with the same idempotency key", 409]
-    );
-    return NextResponse.json({ error: messageText }, { status });
+    const [errorText, status] = map[message] ?? (message.includes("duplicate key") ? ["A pending request or membership already exists", 409] : ["Could not create join request", 500]);
+    if (message.includes("duplicate key")) {
+      const replay = await (await database()).collection("joinRequests").findOne({ userId: user.userId, idempotencyKey: parsed.data.idempotencyKey });
+      if (replay && replay.hackathonId === parsed.data.hackathonId && replay.teamId?.toString() === teamId) {
+        return NextResponse.json({ ok: true, requestId: replay._id.toString(), replayed: true });
+      }
+      if (replay) return NextResponse.json({ error: "This idempotency key was used for a different request" }, { status: 409 });
+    }
+    return NextResponse.json({ error: errorText }, { status });
   }
 }

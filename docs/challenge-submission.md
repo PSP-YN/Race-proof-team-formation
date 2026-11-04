@@ -20,17 +20,18 @@ A normal team directory is easy to build but fails under event-scale contention.
 2. Create a team with explicit skill needs and a maximum size.
 3. Open the leader's invite manager, generate an invitation and revoke it.
 4. Demonstrate that a revoked/expired invite cannot be accepted.
-5. Join a team with a second account and show the membership count.
-6. Open skill matching and explain the score: 75% of listed skill needs a candidate can fill that current members do not cover, plus 25% available capacity.
-7. Open the restricted security dashboard as an allowlisted operator and explain hashed telemetry.
-8. Show the CI run: 10,000 users, 2,000 teams, 8,000 memberships; 50 concurrent contenders for one remaining seat; smoke checks; 100-VU k6 test.
+5. Submit a join request with a second account; switch to the leader account, accept it, and show the membership count and pending queue update.
+6. As the leader, remove a non-leader member and show the member count and audit event update.
+7. Open skill matching and explain the score: 75% of listed skill needs a candidate can fill that current members do not cover, plus 25% available capacity.
+8. Open the restricted security dashboard as an allowlisted operator and explain hashed telemetry.
+9. Show the CI run: 10,000 users, 2,000 teams, 8,000 memberships; 50 pending requests and 50 concurrent leader approvals for one remaining seat; smoke checks; 100-VU k6 test.
 
 Use a disposable staging database and test accounts. Do not demo production with seeded accounts or a shared demo password.
 
 ## Evidence to show
 
 - GitHub Actions CI run: typecheck, unit/integration tests, npm audit, production build, smoke checks and k6.
-- Race test: exactly one winner among 50 contenders for one remaining seat.
+- Race test: exactly one accepted leader approval among 50 pending requests competing for one remaining seat.
 - Load test: 100 VUs for 30 seconds; latest benchmark is in docs/performance.md.
 - Audit trail and invite lifecycle behavior.
 - Architecture notes in docs/architecture.md.

@@ -27,17 +27,17 @@
 
 **Say:** “This judging demo is intentionally static: the browser simulates team creation and persists only in local storage. In the full application, the server validates team creation and capacity; this page does not make API calls.”
 
-### 1:05–1:35 — Skill matching and membership simulation
+### 1:05–1:35 — Skill matching and demo membership simulation
 
 **Show:** Enter a skill such as `Design`, run matching, and join/leave a team.
 
-**Say:** “The demo illustrates the product flow and match discovery. These membership changes are local simulation only; they are not shared with other viewers.”
+**Say:** “The static demo illustrates discovery only. In the full-stack app, participants request to join, the current leader accepts or declines, and a leader can remove a member. Those state changes are committed transactionally and are covered by replica-set integration tests.”
 
-### 1:35–2:10 — The real race-proof guarantee
+### 1:35–2:10 — Moderated membership workflow
 
 **Show:** Open `docs/architecture.md`, `tests/integration/race.test.ts`, and the passing CI run.
 
-**Say:** “The actual race-proof guarantee is implemented in the full-stack code and tested separately against a MongoDB replica set. The static page is a judge-friendly UI demo, not the backend concurrency test.”
+**Say:** “A participant creates a pending request, which does not consume a seat. Only the current leader can accept or decline. Accepting creates the membership, reserves a seat, updates request status and appends an audit event in one transaction. The leader can also remove another member; the membership count and audit log are updated transactionally. The static page is still a browser-only simulation.”
 
 ### 2:10–3:15 — Explain the race-proof transaction
 
@@ -45,7 +45,7 @@
 
 **Say:** “The join operation uses a MongoDB transaction. A conditional capacity update reserves a seat, while a unique compound index on hackathon and user prevents duplicate membership across teams. Both changes commit or abort together. Request-bound idempotency keys make network retries safe.”
 
-**Point to:** the test that launches 50 contenders for one remaining seat and asserts exactly one winner and a consistent stored count.
+**Point to:** the test that creates 50 pending join requests and launches 50 leader approvals for one remaining seat; exactly one approval commits and the team count remains consistent.
 
 ### 3:15–4:00 — Scale and measured performance
 

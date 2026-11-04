@@ -22,10 +22,10 @@ Demonstrate the product's core value: team membership remains correct when reque
 | 0:00–0:30 | Open the team board | Capacity is enforced by the database, not only the UI |
 | 0:30–1:15 | Create a team and define skill needs | Team state and requirements are explicit |
 | 1:15–2:00 | Generate, list and revoke an invite | The leader controls the invitation lifecycle |
-| 2:00–2:45 | Join with a second verified account | Membership and capacity change atomically |
+| 2:00–2:45 | Submit a join request, then accept it as team leader | Only the current leader can decide; membership, seat reservation and audit are transactional |
 | 2:45–3:30 | Open matching suggestions | The score rewards uncovered skills and available seats |
 | 3:30–4:15 | Show board update in a second session | SSE is bounded and reconnectable; fallback refresh remains available |
-| 4:15–5:00 | Show the race test and k6 report | 50 contenders, one final seat; synthetic load results with environment caveats |
+| 4:15–5:00 | Show the race test and k6 report | 50 pending requests, 50 concurrent leader approvals, one final seat; synthetic load results with environment caveats |
 
 ## Technical explanation
 

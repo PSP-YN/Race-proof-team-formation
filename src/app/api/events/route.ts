@@ -22,7 +22,7 @@ export async function GET(req:NextRequest){
     const db=await database();
     const pipeline=[
      {$match:{
-      "ns.coll":{$in:["teams","memberships"]},
+      "ns.coll":{$in:["teams","memberships","joinRequests"]},
       $or:[
        {"fullDocument.hackathonId":hackathonId},
        // MongoDB delete events omit fullDocument; invalidate boards on deletes as well.
