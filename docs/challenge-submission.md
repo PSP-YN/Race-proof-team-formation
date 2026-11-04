@@ -24,7 +24,7 @@ A normal team directory is easy to build but fails under event-scale contention.
 6. As the leader, remove a non-leader member and show the member count and audit event update.
 7. Open skill matching and explain the score: 75% of listed skill needs a candidate can fill that current members do not cover, plus 25% available capacity.
 8. Open the restricted security dashboard as an allowlisted operator and explain hashed telemetry.
-9. Show the CI run: 10,000 users, 2,000 teams, 8,000 memberships; 50 pending requests and 50 concurrent leader approvals for one remaining seat; smoke checks; 100-VU k6 test.
+9. Show the CI run: 10,000 users, 2,000 teams, 10,000 memberships; 50 pending requests and 50 concurrent leader approvals for one remaining seat; smoke checks; 100-VU k6 test.
 
 Use a disposable staging database and test accounts. Do not demo production with seeded accounts or a shared demo password.
 

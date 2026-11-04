@@ -92,9 +92,9 @@ npm run build
 npm audit --audit-level=moderate
 ```
 
-The MongoDB integration test requires a replica set through `MONGODB_TEST_URI`. CI provisions a disposable replica set, validates a dataset of 10,000 users / 2,000 teams / 8,000 memberships, runs the 50-contender final-seat race test, builds the production application, executes smoke checks, and runs a 100-VU / 30-second k6 board test.
+The MongoDB integration test requires a replica set through `MONGODB_TEST_URI`. CI provisions a disposable replica set, validates a dataset of 10,000 users / 2,000 teams / 10,000 memberships, runs the 50-contender final-seat race test, builds the production application, executes smoke checks, and runs a 100-VU / 30-second k6 board test.
 
-Latest main-branch CI benchmark: [run 41673400104](https://github.com/PSP-YN/Race-proof-team-formation/actions/runs/41673400104). Latest validation of the deployed demo source commit: [CI run 41843530011](https://github.com/PSP-YN/Race-proof-team-formation/actions/runs/41843530011) and [CodeQL run 41843529892](https://github.com/PSP-YN/Race-proof-team-formation/actions/runs/41843529892), both passed. It recorded 3,000 requests, 97.84 requests/second, 13.69 ms average response, 11.01 ms p95, 0% HTTP failures, and 6,000/6,000 board checks passed. These are GitHub-runner measurements against a disposable local MongoDB replica set, not production-region measurements. See [performance report](docs/performance.md).
+Latest submission-branch CI run: [run 41873925487](https://github.com/PSP-YN/Race-proof-team-formation/actions/runs/41873925487); CodeQL: [run 41873925485](https://github.com/PSP-YN/Race-proof-team-formation/actions/runs/41873925485). Both passed on commit `a809e7d`. CI verified 10,000 seeded users, 2,000 teams and 10,000 memberships; all 65 tests passed, including the 50-way final-seat race. The 100-VU/30-second k6 test processed 3,000 requests at 97.43 requests/second, with 16.00 ms average response, 20.92 ms p95, 0% HTTP failures and 6,000/6,000 board checks passed. These are GitHub-runner measurements against a disposable local MongoDB replica set, not production-region measurements. See [performance report](docs/performance.md).
 
 ## Deployment status and production gates
 

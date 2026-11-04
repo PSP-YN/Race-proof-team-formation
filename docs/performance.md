@@ -1,14 +1,14 @@
 # Performance test record
 
-## Latest main-branch CI benchmark
+## Latest submission-branch CI benchmark
 
-**Run:** [GitHub Actions main CI run 41673400104](https://github.com/PSP-YN/Race-proof-team-formation/actions/runs/41673400104)
+**Run:** [GitHub Actions submission CI run 41873925487](https://github.com/PSP-YN/Race-proof-team-formation/actions/runs/41873925487)
 
-**Tested commit:** `8b7e039f1c0a065e073b0d6e53e1e9571356873e` (PR #11 merge commit)
+**Tested commit:** `a809e7dab2bbcc4630aad75634a50fade3bc332b` (PR #12 submission-readiness branch)
 
 **Environment:** GitHub-hosted runner, Next.js production server, MongoDB 7 disposable Docker replica set
 
-**Dataset:** 10,000 users, 2,000 teams, 8,000 memberships
+**Dataset:** 10,000 users, 2,000 teams, 10,000 memberships
 
 **Load:** 100 virtual users for 30 seconds
 
@@ -17,12 +17,12 @@
 | Metric | Result |
 |---|---:|
 | Requests | 3,000 |
-| Throughput | 97.84 requests/second |
-| Average response | 13.69 ms |
-| Median response | 5.22 ms |
-| p90 response | 8.13 ms |
-| p95 response | 11.01 ms |
-| Maximum response | 453.91 ms |
+| Throughput | 97.43 requests/second |
+| Average response | 16.00 ms |
+| Median response | 5.40 ms |
+| p90 response | 13.08 ms |
+| p95 response | 20.92 ms |
+| Maximum response | 522.40 ms |
 | HTTP failures | 0.00% |
 | Board checks | 6,000 / 6,000 passed |
 
@@ -30,9 +30,11 @@ The recorded k6 summary provides median, p90 and p95 but not p99. The maximum is
 
 **Comparison runs:** [PR CI run 41672742336](https://github.com/PSP-YN/Race-proof-team-formation/actions/runs/41672742336) recorded 97.65 requests/second and 89.81 ms p95; [PR CI run 41672190102](https://github.com/PSP-YN/Race-proof-team-formation/actions/runs/41672190102) recorded 98.08 requests/second and 28.05 ms p95; the earlier [main-branch baseline 41523345249](https://github.com/PSP-YN/Race-proof-team-formation/actions/runs/41523345249) recorded 97.75 requests/second and 10.77 ms p95. All runs recorded 0% HTTP failures. Variation between runner executions should be treated as benchmark variance, not a production latency trend.
 
+The same run verified exactly 10,000 seeded users, 2,000 teams and 10,000 memberships; all 65 tests passed, including the 50-contender final-seat approval race. CodeQL also passed on the same commit.
+
 ## Acceptance thresholds
 
-The k6 scenario enforces p95 below 200 ms and HTTP failure rate below 1%. Both passed in the latest main-branch CI run.
+The k6 scenario enforces p95 below 200 ms and HTTP failure rate below 1%. Both passed in the latest submission-branch CI run.
 
 ## Interpretation and limitations
 

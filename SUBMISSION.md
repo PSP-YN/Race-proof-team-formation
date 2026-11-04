@@ -31,8 +31,8 @@
 | Leader-driven member removal | Leader-only DELETE member route, atomic membership/count update, request cancellation and audit | Implemented + replica-set integration tests |
 | Audit log | Audit collection and transactional writes | Implemented |
 | Explainable skill recommendations | Matching helper and UI | Implemented |
-| CI and security scanning | [Main CI](https://github.com/PSP-YN/Race-proof-team-formation/actions/workflows/ci.yml) and [CodeQL](https://github.com/PSP-YN/Race-proof-team-formation/actions/workflows/codeql.yml) | Workflows configured; re-check latest main runs before submitting |
-| 100 concurrent users / board p95 under 200 ms | [Performance report](docs/performance.md) | CI benchmark recorded: 100 VUs, 11.01 ms p95, 0% HTTP failures |
+| CI and security scanning | [CI run 41873925487](https://github.com/PSP-YN/Race-proof-team-formation/actions/runs/41873925487) and [CodeQL run 41873925485](https://github.com/PSP-YN/Race-proof-team-formation/actions/runs/41873925485) | Both passed on submission commit |
+| 100 concurrent users / board p95 under 200 ms | [Performance report](docs/performance.md) | CI benchmark recorded: 100 VUs, 20.92 ms p95, 0% HTTP failures |
 | At least 20 API tests | [Test strategy](docs/test-strategy.md), `tests/api/route-contracts.test.ts` | **45 route-handler API contract tests**; database/provider end-to-end checks remain separate |
 | Responsive, keyboard-accessible UI | Static demo browser QA: dialog semantics, Escape handling, create/join, 390px viewport | Browser QA passed; full React app needs separate staging pass |
 | Live URL | Challenge requirement | **Provided:** [CrewForge static demo](https://crewforge-demo-pspyn.vercel.app/). This is a public browser-only simulation; the full-stack service is not deployed. |
@@ -48,11 +48,11 @@
 - Next.js production build: passed.
 - `npm audit --audit-level=moderate`: 0 vulnerabilities.
 
-These checks were run locally before merge. The latest main-branch CI run for the moderated membership workflows is [41860229364](https://github.com/PSP-YN/Race-proof-team-formation/actions/runs/41860229364) (passed). CodeQL is [41860229287](https://github.com/PSP-YN/Race-proof-team-formation/actions/runs/41860229287) (passed).
+These checks were run locally before merge. The latest submission-readiness CI run is [41873925487](https://github.com/PSP-YN/Race-proof-team-formation/actions/runs/41873925487) (passed). CodeQL is [41873925485](https://github.com/PSP-YN/Race-proof-team-formation/actions/runs/41873925485) (passed). Both ran on commit `a809e7d` in PR #12.
 
 ## Recorded benchmark
 
-The current report records a GitHub-hosted runner test using a disposable MongoDB 7 replica set and a seeded dataset of 10,000 users, 2,000 teams and 8,000 memberships. The latest main-branch CI run (100 VUs for 30 seconds) recorded 3,000 requests, 97.84 requests/second, 11.01 ms p95 and 0% HTTP failures. These are CI measurements, not a production deployment result or a production capacity guarantee.
+The current report records a GitHub-hosted runner test using a disposable MongoDB 7 replica set and a seeded dataset of 10,000 users, 2,000 teams and 10,000 memberships. The latest submission-branch CI run (100 VUs for 30 seconds) recorded 3,000 requests, 97.43 requests/second, 20.92 ms p95 and 0% HTTP failures. These are CI measurements, not a production deployment result or a production capacity guarantee.
 
 See [docs/performance.md](docs/performance.md) for the exact run, tested commit and caveats.
 

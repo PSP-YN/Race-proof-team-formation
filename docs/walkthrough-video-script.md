@@ -51,7 +51,7 @@
 
 **Show:** CI workflow, seed verification and `docs/performance.md`.
 
-**Say:** “CI provisions a disposable MongoDB replica set, verifies 10,000 users, 2,000 teams and 8,000 memberships, runs the race test, builds the app, performs smoke checks and runs a 100-user k6 board test. The latest main-branch run processed 3,000 requests at 97.84 requests per second, with 11.01 milliseconds p95 and zero HTTP failures.”
+**Say:** “CI provisions a disposable MongoDB replica set, verifies 10,000 users, 2,000 teams and 10,000 memberships, runs the race test, builds the app, performs smoke checks and runs a 100-user k6 board test. The latest main-branch run processed 3,000 requests at 97.43 requests per second, with 20.92 milliseconds p95 and zero HTTP failures.”
 
 **Say immediately after:** “Those figures are from a GitHub-hosted runner and local disposable MongoDB. They are not production-region measurements.”
 
