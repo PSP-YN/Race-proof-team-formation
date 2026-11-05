@@ -7,6 +7,7 @@ export type RequestJoinInput = {
   userId: string;
   name: string;
   skills: string[];
+  timeZone?: string;
   idempotencyKey: string;
 };
 
@@ -44,7 +45,7 @@ export async function requestJoinTransaction(client: MongoClient, db: Db, input:
     const requestId = new ObjectId();
     await db.collection("joinRequests").insertOne({
       _id: requestId, hackathonId: input.hackathonId, teamId: input.teamId,
-      userId: input.userId, name: input.name, skills: input.skills,
+      userId: input.userId, name: input.name, skills: input.skills, timeZone: input.timeZone || "UTC",
       status: "pending", idempotencyKey: input.idempotencyKey,
       createdAt: now, updatedAt: now,
     }, { session });
@@ -83,7 +84,7 @@ export async function decideJoinRequestTransaction(
       )) throw new Error("ALREADY_MEMBER");
       await db.collection("memberships").insertOne({
         hackathonId: team.hackathonId, teamId: input.teamId, userId: request.userId,
-        name: request.name, skills: request.skills || [], joinedAt: now,
+        name: request.name, skills: request.skills || [], timeZone: request.timeZone || "UTC", joinedAt: now,
       }, { session });
       const reserved = await db.collection("teams").updateOne(
         { _id: input.teamId, leaderId: input.leaderId, status: "open", memberCount: { $lt: team.maxSize } },

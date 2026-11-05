@@ -51,50 +51,56 @@ See [architecture and correctness notes](docs/architecture.md) for the transacti
 
 ### Requirements
 
-- Node.js 20 or newer
-- npm
-- MongoDB replica set (local Docker or MongoDB Atlas)
-- Resend API key and verified sender for email verification and recovery flows
+- Node.js 22 or newer and npm
+- MongoDB 7 replica set (local Docker Compose or MongoDB Atlas)
+- Docker Engine with the Compose plugin for the full-stack local environment
+- Resend API key and verified sender only if you need email verification or recovery
 
-### Configure
+### Configure direct Next.js development
 
 ```bash
 cp .env.example .env.local
 ```
 
-Set these values in `.env.local`:
-
-- `MONGODB_URI`: replica-set connection string
-- `JWT_SECRET`: at least 32 cryptographically random characters
-- `NEXT_PUBLIC_APP_URL`: exact app origin, for example `http://localhost:3000`
-- `RESEND_API_KEY` and `EMAIL_FROM`: verified Resend sender configuration
-- `ADMIN_EMAILS`: comma-separated operator allowlist
-
-Never prefix secrets with `NEXT_PUBLIC_`. Never commit `.env.local`.
-
-### Run
+Set `JWT_SECRET` to at least 32 cryptographically random characters. The checked-in `.env.example` uses the Compose service hostname `mongo`; if you run `npm run dev` directly on the host, override `MONGODB_URI` with `mongodb://127.0.0.1:27017/crewforge?directConnection=true&replicaSet=rs0` and use `NEXT_PUBLIC_APP_URL=http://localhost:3000` for the dev-server origin. Leave `TRUSTED_CLIENT_IP_HEADER` unset in local development. Set `RESEND_API_KEY` and `EMAIL_FROM` only when a real verified Resend sender is available; keep `ADMIN_EMAILS` empty unless you have a real operator account.
 
 ```bash
 npm ci
-npm run dev
+MONGODB_URI='mongodb://127.0.0.1:27017/crewforge?directConnection=true&replicaSet=rs0' NEXT_PUBLIC_APP_URL=http://localhost:3000 npm run dev
 ```
 
-Open http://localhost:3000.
+Open http://localhost:3000. Never prefix secrets with `NEXT_PUBLIC_`; never commit `.env.local`.
 
-Email verification is required before an account becomes active. Configure Resend before demonstrating registration or account recovery. Use a disposable database for all tests and demo seeding.
+### Full-stack local staging with Docker Compose
+
+```bash
+cp .env.example .env
+# Set a unique JWT_SECRET and separate 16+ character SEED_DEMO_PASSWORD / JUDGE_DEMO_PASSWORD values.
+docker compose up --build -d
+docker compose --profile seed run --rm seed
+BASE_URL=http://localhost:3002 npm run smoke
+```
+
+Open **http://localhost:3002**. Use port 3002 for browser interactions: the loopback-only local proxy overwrites `X-Forwarded-For` before requests reach the production-mode app. Port 3001 is the direct app container and is for diagnostics. Seed only a fresh disposable volume; the seed refuses to overwrite an existing dataset unless you explicitly reset an isolated database. The seed creates 10,000 synthetic users, 2,000 teams, 6,000 memberships, 4,000 unassigned participants and 4,000 open seats, plus two verified judge-only accounts. These are test fixtures, not real participants.
+
+If Resend is not configured, registration and recovery email delivery remain disabled. The local seed's pre-verified judge accounts can be used for isolated reviewer walkthroughs with the local `JUDGE_DEMO_PASSWORD`; do not publish that password.
+
+See [the Docker Compose runbook](docs/docker-compose.md) for the full local start, verification and cleanup procedure. `docker compose down` preserves the local database volume; `docker compose down -v` deletes it.
 
 ## Validation
 
 ```bash
 npm run typecheck
-npm test
+MONGODB_TEST_URI='mongodb://127.0.0.1:27017/?directConnection=true&replicaSet=rs0' npm test
+MONGODB_TEST_URI='mongodb://127.0.0.1:27017/?directConnection=true&replicaSet=rs0' npm run chaos
 npm run build
 npm audit --audit-level=moderate
+BASE_URL=http://localhost:3002 npm run smoke
 ```
 
-The MongoDB integration test requires a replica set through `MONGODB_TEST_URI`. CI provisions a disposable replica set, validates a dataset of 10,000 users / 2,000 teams / 10,000 memberships, runs the 50-contender final-seat race test, builds the production application, executes smoke checks, and runs a 100-VU / 30-second k6 board test.
+The direct-connection option is needed for host-run tests against the Compose replica set because MongoDB advertises its Docker-network hostname (`mongo:27017`). CI creates a disposable MongoDB replica set, verifies 10,000 seeded users, 2,000 teams, 6,000 memberships, 4,000 unassigned participants and 4,000 open seats, runs the 50-contender final-seat race and transaction-kill rollback checks, builds the production app, executes smoke checks and runs a 100-VU / 30-second k6 board test.
 
-Latest submission-branch CI run: [run 41873925487](https://github.com/PSP-YN/Race-proof-team-formation/actions/runs/41873925487); CodeQL: [run 41873925485](https://github.com/PSP-YN/Race-proof-team-formation/actions/runs/41873925485). Both passed on commit `a809e7d`. CI verified 10,000 seeded users, 2,000 teams and 10,000 memberships; all 65 tests passed, including the 50-way final-seat race. The 100-VU/30-second k6 test processed 3,000 requests at 97.43 requests/second, with 16.00 ms average response, 20.92 ms p95, 0% HTTP failures and 6,000/6,000 board checks passed. These are GitHub-runner measurements against a disposable local MongoDB replica set, not production-region measurements. See [performance report](docs/performance.md).
+Latest submission-branch CI run: [run 41873925487](https://github.com/PSP-YN/Race-proof-team-formation/actions/runs/41873925487); CodeQL: [run 41873925485](https://github.com/PSP-YN/Race-proof-team-formation/actions/runs/41873925485). Both passed on commit `a809e7d`. CI verified 10,000 seeded users, 2,000 teams, 6,000 memberships, 4,000 unassigned participants and 4,000 open seats; all 65 tests passed, including the 50-way final-seat race. The 100-VU/30-second k6 test processed 3,000 requests at 97.43 requests/second, with 16.00 ms average response, 20.92 ms p95, 0% HTTP failures and 6,000/6,000 board checks passed. These are GitHub-runner measurements against a disposable local MongoDB replica set, not production-region measurements. See [performance report](docs/performance.md).
 
 ## Deployment status and production gates
 
@@ -119,7 +125,7 @@ Follow [production readiness](docs/production-readiness.md) for the runbook and 
 
 The standalone static demo source is [`demo/index.html`](demo/index.html). It does not call APIs, use a database, require login, load remote assets, or need secrets. Team creation, join/leave, skill matching and reset are simulated in browser JavaScript and saved only in local browser storage. It is intentionally not the live full-stack service; the race-safety guarantee is separately verified by MongoDB replica-set integration tests.
 
-The full-stack application demo remains available via the five-minute walkthrough in [docs/demo-runbook.md](docs/demo-runbook.md). The demo guide includes setup, test-account preparation, technical explanation, recovery steps, and claims to avoid. The reviewer-first [submission pack](SUBMISSION.md) links the one-page design brief, measured performance evidence, test matrix and [walkthrough video script](docs/walkthrough-video-script.md). The challenge-specific explanation and interview preparation are in [docs/challenge-submission.md](docs/challenge-submission.md).
+The [2:04 full-stack staging walkthrough](demo/files/CrewForge-FullStack-Staging-Walkthrough.mp4) is recorded from the local MongoDB 7 replica-set build, with English captions in the adjacent VTT file. The video uses temporary, clearly labelled test fixtures and explicitly distinguishes local staging from the public browser-only preview. The demo runbook includes setup, judge-account preparation, technical explanation, recovery steps and claims to avoid. The reviewer-first [submission pack](SUBMISSION.md) links the one-page design brief, measured performance evidence, test matrix and [walkthrough script](docs/walkthrough-video-script.md). The challenge-specific explanation and interview preparation are in [docs/challenge-submission.md](docs/challenge-submission.md).
 
 ## Project documentation
 
@@ -130,6 +136,7 @@ The full-stack application demo remains available via the five-minute walkthroug
 - [Performance report](docs/performance.md)
 - [Production readiness and operations](docs/production-readiness.md)
 - [Demo runbook](docs/demo-runbook.md)
+- [Docker Compose local staging](docs/docker-compose.md)
 - [Challenge submission and interview guide](docs/challenge-submission.md)
 - [Contributing](CONTRIBUTING.md)
 - [Security policy](SECURITY.md)

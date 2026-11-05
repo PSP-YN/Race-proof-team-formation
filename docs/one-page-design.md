@@ -38,7 +38,7 @@ The test invokes the same transaction helpers used by the API routes.
 
 ## Scale and performance evidence
 
-The latest submission-branch CI run verified **10,000 seeded participants, 2,000 teams and 10,000 membership records**. These are synthetic test fixtures, not real registrations.
+The latest submission-branch CI seed verifies **10,000 synthetic participants, 2,000 teams, 6,000 membership records, 4,000 unassigned participants and 4,000 open seats** (three members per team, two open seats per team and 4,000 unassigned participants). It also assigns profile skills and IANA time zones so the matching endpoint can be exercised against realistic diversity. These are test fixtures, not real registrations.
 
 A 100-virtual-user / 30-second k6 run against a GitHub-hosted runner and disposable MongoDB 7 replica set recorded:
 
@@ -70,4 +70,4 @@ This is a reproducible CI regression benchmark, not a production-region capacity
 - [Race integration test](../tests/integration/race.test.ts)
 - [Membership transaction implementation](../src/lib/team-requests.ts)
 
-**Preview scope:** The public URL is an interactive frontend preview with browser-local state. The server-side API, MongoDB transactions and concurrency behavior are independently inspectable and test-backed in the repository and CI.
+**Preview scope:** The public URL is an interactive frontend preview with browser-local state. The server-side API, MongoDB transactions and concurrency behavior are independently inspectable and test-backed in the repository and CI. The preview is not presented as a live database-connected deployment.

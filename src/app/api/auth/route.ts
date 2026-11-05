@@ -2,13 +2,13 @@ import {NextRequest,NextResponse} from "next/server";
 import {createHash,randomBytes} from "node:crypto";
 import {database} from "@/lib/db";
 import {z} from "zod";
-import {createSession,loginUser,registerUser,getSession} from "@/lib/auth";
+import {createSession,loginUser,registerUser,getSession,isValidTimeZone} from "@/lib/auth";
 import {cookies} from "next/headers";
 import {guardMutation} from "@/lib/security";
 export const runtime="nodejs";
 export async function GET(){try{return NextResponse.json({user:await getSession()},{headers:{"Cache-Control":"no-store"}})}catch{return NextResponse.json({user:null},{headers:{"Cache-Control":"no-store"}})}}
 const schema=z.discriminatedUnion("action",[
- z.object({action:z.literal("register"),email:z.email().max(254),name:z.string().trim().min(2).max(60),password:z.string().min(10).max(100)}),
+ z.object({action:z.literal("register"),email:z.email().max(254),name:z.string().trim().min(2).max(60),password:z.string().min(10).max(100),timeZone:z.string().min(1).max(64).default("UTC"),skills:z.array(z.string().trim().min(1).max(40)).max(20).default([])}).refine(x=>isValidTimeZone(x.timeZone),{path:["timeZone"],message:"Choose a valid IANA time zone"}),
  z.object({action:z.literal("login"),email:z.email().max(254),password:z.string().min(1).max(100)}),
  z.object({action:z.literal("logout")})
 ]);
@@ -21,7 +21,7 @@ export async function POST(req:NextRequest){
  const db=await database();
  try{
   if(d.action==="logout"){(await cookies()).delete("crewforge_session");return NextResponse.json({ok:true})}
-  const user=d.action==="register"?await registerUser(d.email,d.name,d.password):await loginUser(d.email,d.password);
+  const user=d.action==="register"?await registerUser(d.email,d.name,d.password,d.timeZone,d.skills):await loginUser(d.email,d.password);
   if(d.action==="register"){
    const token=randomBytes(32).toString("base64url"),now=new Date();
    await db.collection("authTokens").insertOne({userId:new (await import("mongodb")).ObjectId(user.userId),purpose:"verify-email",tokenHash:createHash("sha256").update(token).digest("hex"),createdAt:now,expiresAt:new Date(now.getTime()+24*60*60*1000)});

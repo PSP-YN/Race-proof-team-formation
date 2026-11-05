@@ -1,79 +1,42 @@
-# CrewForge — five-minute walkthrough video script
+# Full-stack staging walkthrough
 
-**Target length:** 4:30–5:00  
-**Purpose:** Let a reviewer understand the user problem, see the product, and verify the race-safety evidence quickly.  
-**Recording mode:** Start with the [public static demo](https://crewforge-demo-pspyn.vercel.app/) and then show GitHub source + CI evidence. The public demo has no backend/API: its create/join/leave and matching interactions are simulations saved in local browser storage. Do not claim it performs real auth, invites, transactions or live multi-user sync.
+**Recorded asset:** `demo/files/CrewForge-FullStack-Staging-Walkthrough.mp4`
+**Length:** 2:04 · 1280×720 · narrated · English captions in the adjacent VTT file
+**Local capture:** Docker Compose Next.js app, MongoDB 7 single-node replica set, and loopback-only trusted proxy on port 3002.
 
-## Recording preparation
+## What the recording demonstrates
 
-- Open the public static demo in an incognito browser to show it works without login.
-- Keep the GitHub repository, CI run, integration test and performance report ready in other tabs.
-- Use the `Reset demo` button before recording to restore the six seed teams.
-- If you separately record the full-stack local app, use a disposable MongoDB replica set and verified test users. Do not mix its data with the browser-only demo.
-- Hide terminal secrets, environment files, email inboxes containing private information and raw invite tokens.
-- If email delivery is not configured locally, use pre-verified disposable accounts and say so. Do not bypass production verification.
+1. **00:00–00:16 — Live staging and health.** The actual Next.js application is open in a dedicated browser profile. Its health endpoint reports the local database connection.
+2. **00:16–00:31 — Persisted team board.** The board and its counts are read from MongoDB. The seeded user/team records are synthetic test fixtures and the interface labels them as such.
+3. **00:31–00:43 — Search.** The board filters by skills and team focus using backend data.
+4. **00:43–01:00 — Real-time update.** A temporary recording-only team and membership are inserted into the isolated staging database. The open page receives a MongoDB change-stream event and refreshes without a manual reload. The fixture is deleted after the capture.
+5. **01:00–01:15 — Authentication boundary.** A signed-out join attempt opens the authentication gate. No anonymous membership mutation is performed.
+6. **01:15–01:29 — Explainable matching.** The interface shows the skill-coverage, time-zone and open-capacity weights.
+7. **01:29–01:44 — Correctness evidence.** The recording states the local 71-test result and the separate 50-contender final-seat race test.
+8. **01:44–02:04 — Production boundary.** The temporary fixture is removed. The narration states that public full-stack deployment still requires Atlas and verified email delivery.
 
-## Timed walkthrough
+## Narration
 
-### 0:00–0:25 — The problem
+This is CrewForge running as a full-stack local staging application. The page reads its team board and dataset counts from a live MongoDB seven replica set. The health endpoint confirms that the database connection is working.
 
-**Show:** The public demo landing page and team board. Point out the “Interactive demo · no backend” marker.
+The board is populated from persisted team records. Search and filtering operate on the data returned by the backend. The interface clearly identifies seeded records as test fixtures, not registered participants.
 
-**Say:** “CrewForge solves team formation when many participants compete for limited seats. The key requirement is not just showing available capacity; it is ensuring the database never records an over-capacity team or lets one participant join two teams in the same hackathon.”
+Filtering updates the visible teams immediately. Participants can search by team name, skills, or project focus, while the underlying records remain stored in MongoDB.
 
-### 0:25–1:05 — Create and discover a team
+A temporary recording fixture is inserted into the staging database. The open browser receives the MongoDB change event and refreshes the board without a manual page reload. The fixture is clearly marked and removed after capture.
 
-**Show:** Create a demo team, add skills, and show it appearing on the board.
+When a signed-out visitor requests to join, CrewForge requires authentication first. No anonymous membership write is accepted. Once authenticated, join requests enter a leader-moderated approval workflow.
 
-**Say:** “This judging demo is intentionally static: the browser simulates team creation and persists only in local storage. In the full application, the server validates team creation and capacity; this page does not make API calls.”
+The matching module ranks teams using uncovered skill coverage, time-zone proximity, and available capacity. The scoring weights are visible in the interface and documented in the engineering notes.
 
-### 1:05–1:35 — Skill matching and demo membership simulation
+The current automated suite passes seventy-one tests, including a fifty-contender race for the final team seat. Exactly one approval commits. These are local verification results, not production capacity guarantees.
 
-**Show:** Enter a skill such as `Design`, run matching, and join/leave a team.
+The temporary recording fixture is deleted after the live update check. This demonstrates the working local backend, not a public production service. Production deployment remains gated on a dedicated MongoDB Atlas database and verified transactional email delivery.
 
-**Say:** “The static demo illustrates discovery only. In the full-stack app, participants request to join, the current leader accepts or declines, and a leader can remove a member. Those state changes are committed transactionally and are covered by replica-set integration tests.”
+## Review boundary
 
-### 1:35–2:10 — Moderated membership workflow
-
-**Show:** Open `docs/architecture.md`, `tests/integration/race.test.ts`, and the passing CI run.
-
-**Say:** “A participant creates a pending request, which does not consume a seat. Only the current leader can accept or decline. Accepting creates the membership, reserves a seat, updates request status and appends an audit event in one transaction. The leader can also remove another member; the membership count and audit log are updated transactionally. The static page is still a browser-only simulation.”
-
-### 2:10–3:15 — Explain the race-proof transaction
-
-**Show:** Open `docs/architecture.md` and the integration test `tests/integration/race.test.ts`.
-
-**Say:** “The join operation uses a MongoDB transaction. A conditional capacity update reserves a seat, while a unique compound index on hackathon and user prevents duplicate membership across teams. Both changes commit or abort together. Request-bound idempotency keys make network retries safe.”
-
-**Point to:** the test that creates 50 pending join requests and launches 50 leader approvals for one remaining seat; exactly one approval commits and the team count remains consistent.
-
-### 3:15–4:00 — Scale and measured performance
-
-**Show:** CI workflow, seed verification and `docs/performance.md`.
-
-**Say:** “CI provisions a disposable MongoDB replica set, verifies 10,000 users, 2,000 teams and 10,000 memberships, runs the race test, builds the app, performs smoke checks and runs a 100-user k6 board test. The latest main-branch run processed 3,000 requests at 97.43 requests per second, with 20.92 milliseconds p95 and zero HTTP failures.”
-
-**Say immediately after:** “Those figures are from a GitHub-hosted runner and local disposable MongoDB. They are not production-region measurements.”
-
-### 4:00–4:40 — Security and limits
-
-**Show:** `docs/threat-model.md`, security dashboard if available, and test strategy.
-
-**Say:** “The project also includes same-origin mutation checks, server-side authorization, persistent rate limits, HttpOnly sessions, hashed single-use tokens and privacy-preserving security telemetry. The documented manual matrix covers flows that still need staging verification.”
-
-### 4:40–5:00 — Close
-
-**Show:** Repository README and submission brief.
-
-**Say:** “The strongest part of CrewForge is its database-enforced consistency model and reproducible concurrency evidence. The public demo is intentionally browser-only; the backend remains a separate code-and-test deliverable. The repository distinguishes measured evidence from what is not deployed.”
-
-## Recording checklist
-
-- [ ] Record at 1080p with readable browser and editor text.
-- [ ] Keep the walkthrough under five minutes.
-- [ ] Show the 50-contender test source and its passing CI evidence.
-- [ ] Show the performance report and explicitly state its environment.
-- [ ] Do not expose credentials, tokens, private user data or seeded passwords.
-- [ ] State that the public URL is a static simulation and not the full-stack production service.
-- [ ] Do not claim a production WAF or production benchmark.
-- [ ] Upload the final MP4 to the submission portal or a shareable location and verify reviewer access.
+- The video is a genuine browser capture of the running local full-stack application, not a slide animation or a still-image montage.
+- The fixture dataset is synthetic and must not be presented as real participants.
+- The recording shows the signed-out authentication gate and the matching weights; it does not run an authenticated match or claim a successful public email-verification journey.
+- The public Vercel demo is a separate browser-only preview. The full-stack staging app is not publicly reachable.
+- Do not submit the Hack4Hack form until the public backend and email gates are resolved and the final review is approved.

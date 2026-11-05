@@ -22,9 +22,9 @@ A normal team directory is easy to build but fails under event-scale contention.
 4. Demonstrate that a revoked/expired invite cannot be accepted.
 5. Submit a join request with a second account; switch to the leader account, accept it, and show the membership count and pending queue update.
 6. As the leader, remove a non-leader member and show the member count and audit event update.
-7. Open skill matching and explain the score: 75% of listed skill needs a candidate can fill that current members do not cover, plus 25% available capacity.
+7. Open teammate matching and explain the score: 65% uncovered skill coverage, 20% time-zone proximity (candidate IANA zone versus current members, DST-aware), and 15% open-seat capacity. Missing member time-zone data receives a neutral score.
 8. Open the restricted security dashboard as an allowlisted operator and explain hashed telemetry.
-9. Show the CI run: 10,000 users, 2,000 teams, 10,000 memberships; 50 pending requests and 50 concurrent leader approvals for one remaining seat; smoke checks; 100-VU k6 test.
+9. Show the CI run: 10,000 users, 2,000 teams, 6,000 memberships; 50 pending requests and 50 concurrent leader approvals for one remaining seat; smoke checks; 100-VU k6 test.
 
 Use a disposable staging database and test accounts. Do not demo production with seeded accounts or a shared demo password.
 
@@ -48,7 +48,7 @@ Be precise: the recorded load test is a GitHub Actions runner against a local Mo
 
 **What are the trade-offs?** Change streams need a replica set and consume database connections. Serverless duration and connection limits must be measured on the target host. The UI falls back to periodic refresh if SSE is unavailable.
 
-**How does matching work?** Candidate skills are compared with the team's declared skill needs and the skills already represented by current members. A candidate is rewarded for filling uncovered needs, not for lacking the skills the team asks for.
+**How does matching work?** Candidate skills are compared with declared team needs after removing skills already represented by current members. The score is 65% uncovered skill coverage, 20% average circular UTC-offset proximity between the candidate and current members, and 15% available capacity. IANA time zones are captured at registration and evaluated at request time so daylight-saving changes are respected. Missing member time-zone data receives a neutral 50% time-zone component, not a mismatch penalty.
 
 **What remains external?** Email delivery needs a verified Resend sender; the managed WAF needs a Cloudflare zone with DNS proxied; production smoke and load tests need a configured host and production-like database.
 

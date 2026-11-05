@@ -12,7 +12,7 @@ export async function GET(_req: NextRequest, ctx: { params: Promise<{ teamId: st
     const db = await database(), id = new ObjectId(teamId);
     const team = await db.collection("teams").findOne({ _id: id, leaderId: user.userId, status: "open" }, { projection: { _id: 1 } });
     if (!team) return NextResponse.json({ error: "Only the current team leader can view members" }, { status: 403 });
-    const members = await db.collection("memberships").find({ teamId: id }, { projection: { userId: 1, name: 1, skills: 1, joinedAt: 1 } }).sort({ joinedAt: 1 }).toArray();
-    return NextResponse.json({ members: members.map(m => ({ userId: m.userId, name: m.name, skills: m.skills || [], joinedAt: m.joinedAt })) }, { headers: { "Cache-Control": "no-store" } });
+    const members = await db.collection("memberships").find({ teamId: id }, { projection: { userId: 1, name: 1, skills: 1, timeZone: 1, joinedAt: 1 } }).sort({ joinedAt: 1 }).toArray();
+    return NextResponse.json({ members: members.map(m => ({ userId: m.userId, name: m.name, skills: m.skills || [], timeZone: m.timeZone || "UTC", joinedAt: m.joinedAt })) }, { headers: { "Cache-Control": "no-store" } });
   } catch { return NextResponse.json({ error: "Could not load team members" }, { status: 500 }); }
 }

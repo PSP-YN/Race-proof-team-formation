@@ -1,7 +1,7 @@
 import {NextRequest,NextResponse} from "next/server";
 import {createHash} from "node:crypto";
 import {database} from "@/lib/db";
-import {createSession} from "@/lib/auth";
+import {createSession,isValidTimeZone} from "@/lib/auth";
 import {guardMutation} from "@/lib/security";
 export const runtime="nodejs";
 export async function POST(req:NextRequest){
@@ -13,6 +13,6 @@ export async function POST(req:NextRequest){
  if(!record)return NextResponse.json({error:"Verification link is invalid, expired or already used"},{status:410});
  const user=await db.collection("users").findOneAndUpdate({_id:record.userId},{$set:{emailVerified:true,emailVerifiedAt:now}},{returnDocument:"after"});
  if(!user)return NextResponse.json({error:"Account not found"},{status:404});
- await createSession({userId:user._id.toString(),email:user.email,name:user.name,sessionVersion:typeof user.sessionVersion==="number"?user.sessionVersion:0});
+ await createSession({userId:user._id.toString(),email:user.email,name:user.name,timeZone:typeof user.timeZone==="string"&&isValidTimeZone(user.timeZone)?user.timeZone:"UTC",skills:Array.isArray(user.skills)?user.skills.filter((x):x is string=>typeof x==="string").slice(0,20):[],sessionVersion:typeof user.sessionVersion==="number"?user.sessionVersion:0});
  return NextResponse.json({ok:true});
 }

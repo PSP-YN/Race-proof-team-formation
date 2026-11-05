@@ -10,7 +10,8 @@
     "test": "vitest run",
     "loadtest": "k6 run tests/load/board.js",
     "seed": "node scripts/seed.mjs",
-    "smoke": "node scripts/smoke.mjs"
+    "smoke": "node scripts/smoke.mjs",
+    "chaos": "node tests/chaos/kill-mid-join.mjs"
   },
   "dependencies": {
     "bcryptjs": "^2.4.3",
