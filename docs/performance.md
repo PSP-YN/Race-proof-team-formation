@@ -32,15 +32,34 @@ The recorded k6 summary provides median, p90 and p95 but not p99. The maximum is
 
 The same run verified 10,000 seeded users, 2,000 teams and 10,000 memberships; all 65 tests passed, including the 50-contender final-seat approval race. This run predates the current seed correction and transaction-kill test.
 
-## Current local verification (new seed; CI rerun pending)
+## Latest CI benchmark (corrected seed)
 
-The current branch now seeds **10,000 synthetic users, 2,000 teams, 6,000 memberships, 4,000 unassigned participants, 4,000 open seats and 2 judge-only accounts**. A fresh isolated Compose seed run verified these exact counts and was dropped afterwards. The local test suite passes **71/71 tests**, the transaction-kill rollback test passes, and typecheck, production build, dependency audit and five smoke checks pass.
+**Run:** [GitHub Actions CI run 42057405278](https://github.com/PSP-YN/Race-proof-team-formation/actions/runs/42057405278)
+**Tested commit:** `274feac8b1a714452e01bbd7935425a078b41439`
+**CodeQL:** [Run 42057405246](https://github.com/PSP-YN/Race-proof-team-formation/actions/runs/42057405246) — passed
+**Environment:** GitHub-hosted runner, Next.js production server, MongoDB 7 disposable Docker replica set
+**Dataset:** 10,000 synthetic users, 2,000 teams, 6,000 memberships, 4,000 unassigned participants, 4,000 open seats and 2 judge-only accounts
+**Load:** 100 virtual users for 30 seconds
 
-The 100-VU benchmark above must not be presented as a measurement of the corrected 6,000-membership / 4,000-open-seat dataset. A new CI run on the updated PR commit is required; replace this section with its actual metrics after it completes.
+| Metric | Result |
+|---|---:|
+| Requests | 3,000 |
+| Throughput | 98.43 requests/second |
+| Average response | 10.20 ms |
+| Median response | 3.35 ms |
+| p90 response | 6.41 ms |
+| p95 response | 10.23 ms |
+| Maximum response | 340.45 ms |
+| HTTP failures | 0.00% |
+| Board checks | 6,000 / 6,000 passed |
+
+The run passed both k6 thresholds: p95 below 200 ms and HTTP failure rate below 1%. The k6 summary does not provide p99; it is intentionally not inferred. This is a synthetic CI benchmark, not a production capacity or latency guarantee.
+
+The same CI run verified the corrected seed counts, passed typecheck, **71/71 tests across 3 files**, the transaction-kill rollback test, production build, dependency audit, and all five smoke checks.
 
 ## Acceptance thresholds
 
-The k6 scenario enforces p95 below 200 ms and HTTP failure rate below 1%. Both passed in the previous published baseline. The corrected seed must pass the same thresholds in the next CI run.
+The k6 scenario enforces p95 below 200 ms and HTTP failure rate below 1%. Both thresholds passed in the latest CI run against the corrected seed.
 
 ## Interpretation and limitations
 

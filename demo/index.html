@@ -33,10 +33,10 @@
   <div class="codeflow">50 participants submit pending join requests<br>↓<br>50 leader approvals execute concurrently<br>↓<br>Conditional capacity update + unique membership index<br>↓<br>1 accepted · 49 rejected<br>2 memberships total (leader + winner) · memberCount = 2<br>Exactly 1 JOIN_REQUEST_ACCEPTED audit event</div>
   <p class="guide-intro">The integration test invokes the same transaction helpers used by the production API routes. Inspect <a href="https://github.com/PSP-YN/Race-proof-team-formation/blob/main/tests/integration/race.test.ts" target="_blank" rel="noopener noreferrer">the MongoDB race test</a> and <a href="https://github.com/PSP-YN/Race-proof-team-formation/blob/main/src/lib/team-requests.ts" target="_blank" rel="noopener noreferrer">the membership transaction implementation</a>.</p>
   <div class="sectionhead"><div><div class="kicker">Scale + performance</div><h2>10,000 seeded participants · 2,000 teams · 6,000 memberships</h2></div></div>
-  <p class="guide-intro">The current local seed verifies 10,000 synthetic participant accounts, 2,000 teams, 6,000 membership records, 4,000 unassigned participants and 4,000 open seats. These are reproducible test fixtures—not real registered people. The published 100-VU benchmark is historical: it used the earlier 10,000-membership fixture on a GitHub-hosted runner with disposable MongoDB. A fresh CI benchmark for this corrected 6,000-membership fixture is pending.</p>
+  <p class="guide-intro">The latest CI run verifies 10,000 synthetic participant accounts, 2,000 teams, 6,000 membership records, 4,000 unassigned participants and 4,000 open seats. These are reproducible test fixtures—not real registered people. The 100-VU/30-second CI benchmark against this corrected fixture processed 3,000 requests at 98.43 requests/second, with 10.23 ms p95 and 0% HTTP failures. It ran on a GitHub-hosted runner with disposable MongoDB 7; it is not a production capacity guarantee.</p>
   <div class="benchmark">
-    <div class="metric"><b>20.92 ms</b><span>p95 board response</span></div>
-    <div class="metric"><b>97.43</b><span>requests / second</span></div>
+    <div class="metric"><b>10.23 ms</b><span>p95 board response</span></div>
+    <div class="metric"><b>98.43</b><span>requests / second</span></div>
     <div class="metric"><b>3,000</b><span>requests measured</span></div>
     <div class="metric"><b>0.00%</b><span>HTTP failures</span></div>
   </div>

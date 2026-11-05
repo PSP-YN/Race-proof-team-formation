@@ -56,7 +56,7 @@ Run these against a disposable staging deployment using separate test accounts. 
 
 The GitHub Actions workflow provisions a disposable MongoDB replica set, seeds and verifies 10,000 users, 2,000 teams, 6,000 memberships, 4,000 unassigned participants and 4,000 open seats, runs typecheck and automated tests, audits locked dependencies, builds the application, starts the production server, runs smoke checks, and executes the 100-VU/30-second k6 board test.
 
-Latest successful full CI run for the moderated-membership implementation commit: https://github.com/PSP-YN/Race-proof-team-formation/actions/runs/41860229364. A later documentation-only commit also passed CI and CodeQL.
+Latest successful submission-branch CI run: https://github.com/PSP-YN/Race-proof-team-formation/actions/runs/42057405278. Matching CodeQL run: https://github.com/PSP-YN/Race-proof-team-formation/actions/runs/42057405246. Both passed on commit `274feac`, including the corrected seed, 71-test suite, transaction-kill rollback and 100-VU load test.
 
 ## Local verification on submission-readiness branch
 
