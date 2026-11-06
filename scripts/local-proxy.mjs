@@ -31,10 +31,12 @@ const server = http.createServer((req, res) => {
     response.pipe(res);
   });
 
-  upstream.on("error", error => {
+  upstream.on("error", () => {
     if (!res.headersSent) res.writeHead(502, { "content-type": "text/plain; charset=utf-8" });
     res.end("Local staging proxy could not reach the app.");
-    console.error("Upstream request failed:", error.message);
+    // Avoid logging exception text: network error messages can contain
+    // request-derived values and are not needed to diagnose this local proxy.
+    console.error("Local staging proxy: upstream request failed.");
   });
 
   req.on("aborted", () => upstream.destroy());
