@@ -14,10 +14,10 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 30
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           persist-credentials: false
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v7
         with:
           node-version: 22
       - name: Start disposable MongoDB replica set
@@ -38,22 +38,32 @@ jobs:
         run: npm ci --no-audit --no-fund
       - name: Enforce dependency audit
         run: npm audit --audit-level=moderate
-      - name: Verify 10k participant and 2k team seed
+      - name: Verify 10k participants, 2k teams, 6k memberships and 4k open seats seed
         run: |
-          SEED_DEMO_PASSWORD="$(openssl rand -hex 32)" ALLOW_DEMO_SEED=true npm run seed
+          SEED_DEMO_PASSWORD="$(openssl rand -hex 32)" JUDGE_DEMO_PASSWORD="$(openssl rand -hex 32)" ALLOW_DEMO_SEED=true npm run seed
           docker exec crewforge-mongo mongosh crewforge --quiet --eval '
             const h="hack4hack-crew-hiring-2026";
-            const users=db.users.countDocuments({email:/^demo\+\d{5}@crewforge\.local$/});
+            const seededUserIds=new Set(db.users.find({email:/^demo\+\d{5}@crewforge\.local$/},{_id:1}).toArray().map(u=>u._id.toString()));
+            const users=seededUserIds.size;
             const verified=db.users.countDocuments({email:/^demo\+\d{5}@crewforge\.local$/,emailVerified:true});
-            const teams=db.teams.countDocuments({hackathonId:h});
-            const memberships=db.memberships.countDocuments({hackathonId:h});
-            printjson({users,verified,teams,memberships});
-            if(users!==10000||verified!==10000||teams!==2000||memberships!==8000) quit(1);
+            const seededTeams=db.teams.countDocuments({hackathonId:h,seeded:true});
+            const seededMemberships=db.memberships.countDocuments({hackathonId:h,seeded:true});
+            const assignedIds=db.memberships.distinct("userId",{hackathonId:h,seeded:true});
+            const unassignedParticipants=users-assignedIds.filter(id=>seededUserIds.has(id)).length;
+            const openSeats=db.teams.aggregate([{$match:{hackathonId:h,seeded:true,status:"open"}},{$group:{_id:null,total:{$sum:{$subtract:["$maxSize","$memberCount"]}}}}]).toArray()[0]?.total||0;
+            const correctlySized=db.teams.countDocuments({hackathonId:h,seeded:true,maxSize:5,memberCount:3});
+            const judgeAccounts=db.users.countDocuments({email:/^judge\.(leader|joiner)@crewforge\.demo$/,emailVerified:true});
+            printjson({users,verified,seededTeams,seededMemberships,unassignedParticipants,openSeats,correctlySized,judgeAccounts});
+            if(users!==10000||verified!==10000||seededTeams!==2000||seededMemberships!==6000||unassignedParticipants!==4000||openSeats!==4000||correctlySized!==2000||judgeAccounts!==2) quit(1);
           '
         env:
           MONGODB_URI: mongodb://127.0.0.1:27017/crewforge?replicaSet=rs0
       - run: npm run typecheck
       - run: npm test
+        env:
+          MONGODB_TEST_URI: mongodb://127.0.0.1:27017/?replicaSet=rs0
+      - name: Kill a join worker mid-transaction and verify rollback
+        run: npm run chaos
         env:
           MONGODB_TEST_URI: mongodb://127.0.0.1:27017/?replicaSet=rs0
       - run: npm run build

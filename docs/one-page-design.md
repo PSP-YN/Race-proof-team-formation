@@ -1,67 +1,73 @@
-# CrewForge
+# CrewForge — race-proof team formation at scale
 
-**Public interactive demo:** https://crewforge-demo-pspyn.vercel.app/ — static browser-only; no backend/API. The production race guarantee is demonstrated by the repository integration tests, not by this simulation. — PS1 one-page design brief
+**Pitch:** A reliable hackathon team-formation platform where skill discovery is fast and membership capacity is enforced by the database—not by a browser button.
 
-**Challenge:** Hack4Hack Crew Hiring Challenge 2026 · PS1: Race-proof team formation at scale  
+**Interactive product preview:** https://crewforge-demo-pspyn.vercel.app/
 **Repository:** https://github.com/PSP-YN/Race-proof-team-formation
+**Challenge:** Hack4Hack Crew Hiring Challenge 2026 · PS1
 
-## Problem
+## The problem
 
-At hackathon scale, many participants can attempt to join the same team at the same time. A client-side capacity check or a read-then-write API can admit more people than the team allows. A participant can also race two requests to join different teams. The system must preserve both invariants under concurrent requests and retries.
+At hackathon scale, many participants can request the same final team seat at nearly the same time. Client-side capacity checks and read-then-write APIs can overfill teams, duplicate memberships or produce inconsistent state after retries. CrewForge makes team membership a transactional, auditable operation.
 
-## Data model
+## Product workflow
 
-MongoDB stores the authoritative state:
+1. **Discover:** browse teams, filter by skill and compare open seats.
+2. **Create:** define a team, project focus, required skills and capacity.
+3. **Request:** submit an idempotent pending join request; a pending request does not reserve a seat.
+4. **Approve:** only the current leader can accept or decline. Approval checks authority and capacity inside a MongoDB transaction.
+5. **Manage:** leaders can remove members; leadership transfers when a leader leaves; final-member departure closes the team.
+6. **Stay current:** MongoDB change streams publish bounded Server-Sent Events for board refresh.
 
-- **users** — normalized unique email, password hash, verification state and session version.
-- **teams** — hackathon, leader, team metadata, min/max size, status and authoritative member count.
-- **memberships** — participant-to-team relationship. A unique compound index on `(hackathonId, userId)` enforces one team per participant per hackathon.
-- **joinRequests** — pending/accepted/declined/cancelled requests; unique `(userId,idempotencyKey)`, plus a partial unique `(hackathonId,userId)` index while status is pending.
-- **invites** — SHA-256 token hash, expiry, consumed/revoked timestamps.
-- **audit** — append-oriented record of actor, action, target and timestamp.
-- **rateLimits / securityEvents / authTokens** — persistent abuse counters, privacy-preserving security telemetry and hashed single-use authentication tokens.
+## Architecture and correctness
 
-Indexes are part of the correctness model, not optional performance tuning. The application requires a MongoDB replica set or sharded cluster for transactions and change streams.
+Next.js API routes handle authentication, validation, origin checks and rate limits. MongoDB stores users, teams, memberships, join requests, invites and audit events. Unique compound indexes enforce one membership per participant per hackathon and one pending request per participant. Invite tokens are high-entropy and stored only as hashes.
 
-## How the last-seat race is prevented
+An approval transaction verifies the leader and pending request, inserts the membership, conditionally increments `memberCount` only when capacity remains, changes the request status and appends the audit event. Any failed invariant aborts the entire transaction.
 
-1. The API authenticates the participant, validates the request and stores a pending request with a request-bound idempotency key. A partial unique index prevents multiple active requests per participant and hackathon.
-2. The current leader accepts a pending request. Inside one MongoDB transaction, the service verifies leader authority and request state, inserts the membership, and conditionally increments memberCount only while the team is open and below maxSize.
-3. The same transaction marks the request accepted and appends the audit event. If capacity or uniqueness fails, the transaction aborts; membership, capacity and request status cannot diverge.
-4. The unique (hackathonId, userId) membership index prevents a participant from joining a second team in the hackathon, including through invite acceptance or team creation.
-5. The MongoDB driver retries transient transaction conflicts. Replaying the same idempotency key and target returns the original request; reusing the key for another target is rejected.
+## Concurrency proof
 
-The integration suite calls the production requestJoinTransaction and decideJoinRequestTransaction helpers. It creates one remaining seat, inserts 50 pending requests and launches 50 leader approvals concurrently; exactly one request is accepted and 49 approvals are rejected. Assertions require two total memberships including the leader, memberCount=2 and exactly one JOIN_REQUEST_ACCEPTED audit event. Separate database tests cover unique membership, request replay safety, conflicting idempotency-key reuse, decline, full-seat rejection and member removal.
+The MongoDB replica-set integration test creates 50 pending requests and launches 50 leader approvals concurrently for one remaining seat. It verifies:
 
-## Moderated joins and leader member management
+- Exactly **1 accepted** and **49 rejected** approvals
+- Exactly **2 memberships** (leader + winner)
+- Stored `memberCount = 2`
+- Exactly **1** `JOIN_REQUEST_ACCEPTED` audit event
 
-A participant's board action creates a pending joinRequests record; it does not reserve a seat or create membership. A participant may hold only one pending request per hackathon, enforced by the partial unique index. Only the current leader can view the pending queue and accept or decline. The legacy /join endpoint creates the same moderated request and cannot bypass approval.
+The test invokes the same transaction helpers used by the API routes.
 
-The leader-only member removal endpoint prevents self-removal through that route, deletes the selected membership, decrements memberCount and writes an audit event in one transaction. Pending requests by a removed participant in that hackathon are cancelled. Leaders transfer leadership through the normal Leave team flow; the earliest remaining member becomes leader.
+## Scale and performance evidence
 
-## Other lifecycle and product decisions
+The latest submission-branch CI seed verifies **10,000 synthetic participants, 2,000 teams, 6,000 membership records, 4,000 unassigned participants and 4,000 open seats** (three members per team, two open seats per team and 4,000 unassigned participants). It also assigns profile skills and IANA time zones so the matching endpoint can be exercised against realistic diversity. These are test fixtures, not real registrations.
 
-- Invite tokens are high-entropy, opaque and stored only as hashes. Expiry, revocation, single-use consumption, membership insertion and audit writes are transactionally enforced.
-- When a leader leaves, the earliest remaining member becomes leader and outstanding invites are revoked. When the final member leaves, the team is closed.
-- Skill matching scores candidates for filling skills the team still needs and for available capacity; the explanation accompanies the score.
-- The board uses MongoDB change streams over bounded Server-Sent Events. SSE fits one-way board invalidation; reconnect and refresh fallback avoid making a long-lived socket a correctness dependency.
-- Same-origin checks, persistent rate limits, server-side authorization, HttpOnly sessions and hashed security telemetry protect mutation and account flows.
+The latest 100-virtual-user / 30-second k6 run (CI run 42057405278) against a GitHub-hosted runner and disposable MongoDB 7 replica set recorded:
 
-## Trade-offs
+| Metric | Result |
+|---|---:|
+| Requests | 3,000 |
+| Throughput | 98.43 requests/second |
+| Average response | 10.20 ms |
+| p95 response | 10.23 ms |
+| HTTP failures | 0.00% |
+| Board checks | 6,000 / 6,000 passed |
 
-MongoDB transactions and unique indexes were chosen over client-side checks, in-memory locks or Redis locks. They keep invariants next to the source of truth and work across multiple application instances. The cost is replica-set infrastructure, transaction overhead and careful connection-pool management. SSE is simpler than WebSockets for one-way updates, but change streams consume database connections and serverless stream duration must be measured on the target host.
+This is a reproducible CI regression benchmark, not a production-region capacity claim.
 
-## Evidence and limits
+## Security and operational controls
 
-The repository documents a CI benchmark with 10,000 users, 2,000 teams and 8,000 memberships; 100 virtual users for 30 seconds; 3,000 requests; 97.84 requests/second; 11.01 ms p95; and 0% HTTP failures. The environment was a GitHub-hosted runner with a disposable local MongoDB replica set. It is a regression benchmark, **not** a production-region or deployed-service measurement.
+- bcrypt password hashes and signed HttpOnly session cookies
+- Server-side role checks and same-origin mutation validation
+- Persistent rate limits and Zod request validation
+- Hashed, expiring, revocable invite and authentication tokens
+- Transactional audit events and privacy-preserving security telemetry
+- Bounded SSE streams with reconnect and refresh fallback
 
-The automated suite currently includes 45 route-handler API contract tests, 9 unit tests and 11 MongoDB replica-set integration tests, including the 50-contender race and the moderated request/accept/decline/removal workflows. These tests passed against the local disposable MongoDB 7 replica set during this update. API tests use real `NextRequest` objects and the actual route handlers while isolating database/auth/security dependencies with mocks; they are not full deployed end-to-end tests. Provider delivery, full database-backed invite lifecycle and broader staging authorization/abuse checks remain manual release checks.
+## Evidence links
 
-## What I would do with one more week
+- [CI run — 71/71 tests and corrected 10k/2k/6k seed](https://github.com/PSP-YN/Race-proof-team-formation/actions/runs/42057405278)
+- [CodeQL run](https://github.com/PSP-YN/Race-proof-team-formation/actions/runs/42057405246)
+- [Performance report](performance.md)
+- [Race integration test](../tests/integration/race.test.ts)
+- [Membership transaction implementation](../src/lib/team-requests.ts)
 
-1. Configure a managed MongoDB replica-set database and verified Resend sender in Vercel, then deploy the full-stack service.
-2. Run the full staging authorization, invite lifecycle, origin/rate-limit, SSE multi-session and failure-mode matrix against the deployed URL.
-3. Add optimistic UI rollback for 409 conflicts, Docker Compose, tracing/metrics and a server-kill-during-join chaos test.
-4. Run a 15–30 minute soak and controlled burst test against the deployed environment; capture p50/p95/p99, throughput, errors and database pool behavior, then rehearse backup restore and rollback.
-
-**Deployment gate:** the workflows are implemented and locally integration-tested. The full-stack app still cannot be deployed as a working service until Vercel has a MongoDB Atlas replica-set URI and Resend sender credentials. The public URL remains a static browser-only demo.
+**Preview scope:** The public URL is an interactive frontend preview with browser-local state. The server-side API, MongoDB transactions and concurrency behavior are independently inspectable and test-backed in the repository and CI. The preview is not presented as a live database-connected deployment.

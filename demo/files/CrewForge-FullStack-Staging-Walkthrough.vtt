@@ -1,0 +1,25 @@
+WEBVTT
+
+00:00:00.000 --> 00:00:15.720
+This is CrewForge running as a full-stack local staging application. The page reads its team board and dataset counts from a live MongoDB seven replica set. The health endpoint confirms that the database connection is working.
+
+00:00:15.720 --> 00:00:30.970
+The board is populated from persisted team records. Search and filtering operate on the data returned by the backend. The interface clearly identifies seeded records as test fixtures, not registered participants.
+
+00:00:30.970 --> 00:00:42.780
+Filtering updates the visible teams immediately. Participants can search by team name, skills, or project focus, while the underlying records remain stored in MongoDB.
+
+00:00:42.780 --> 00:00:59.800
+A temporary recording fixture is inserted into the staging database. The open browser receives the MongoDB change event and refreshes the board without a manual page reload. The fixture is clearly marked and removed after capture.
+
+00:00:59.800 --> 00:01:15.340
+When a signed-out visitor requests to join, CrewForge requires authentication first. No anonymous membership write is accepted. Once authenticated, join requests enter a leader-moderated approval workflow.
+
+00:01:15.340 --> 00:01:28.950
+The matching module ranks teams using uncovered skill coverage, time-zone proximity, and available capacity. The scoring weights are visible in the interface and documented in the engineering notes.
+
+00:01:28.950 --> 00:01:44.650
+The current automated suite passes seventy-one tests, including a fifty-contender race for the final team seat. Exactly one approval commits. These are local verification results, not production capacity guarantees.
+
+00:01:44.650 --> 00:02:04.370
+The temporary recording fixture is deleted after the live update check. This demonstrates the working local backend, not a public production service. Production deployment remains gated on a dedicated MongoDB Atlas database and verified transactional email delivery.

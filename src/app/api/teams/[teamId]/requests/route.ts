@@ -17,9 +17,9 @@ export async function GET(_req: NextRequest, ctx: { params: Promise<{ teamId: st
     if (!team) return NextResponse.json({ error: "Only the current team leader can view requests" }, { status: 403 });
     const requests = await db.collection("joinRequests").find(
       { teamId: id, hackathonId: team.hackathonId, status: "pending" },
-      { projection: { userId: 1, name: 1, skills: 1, createdAt: 1 } },
+      { projection: { userId: 1, name: 1, skills: 1, timeZone: 1, createdAt: 1 } },
     ).sort({ createdAt: 1 }).limit(100).toArray();
-    return NextResponse.json({ requests: requests.map(r => ({ id: r._id.toString(), userId: r.userId, name: r.name, skills: r.skills || [], createdAt: r.createdAt })) }, { headers: { "Cache-Control": "no-store" } });
+    return NextResponse.json({ requests: requests.map(r => ({ id: r._id.toString(), userId: r.userId, name: r.name, skills: r.skills || [], timeZone: r.timeZone || "UTC", createdAt: r.createdAt })) }, { headers: { "Cache-Control": "no-store" } });
   } catch { return NextResponse.json({ error: "Could not load join requests" }, { status: 500 }); }
 }
 
@@ -38,7 +38,7 @@ export async function POST(req: NextRequest, ctx: { params: Promise<{ teamId: st
   if (!parsed.success) return NextResponse.json({ error: "Invalid join request" }, { status: 400 });
   try {
     const result = await requestJoinTransaction(await mongoClient(), await database(), {
-      ...parsed.data, teamId: new ObjectId(teamId), userId: user.userId, name: user.name,
+      ...parsed.data, teamId: new ObjectId(teamId), userId: user.userId, name: user.name, timeZone: user.timeZone || "UTC",
     });
     return NextResponse.json({ ok: true, ...result }, { status: result.replayed ? 200 : 201 });
   } catch (error) {

@@ -2,7 +2,7 @@
 
 ## Current release status
 
-The application now includes the moderated join-request queue, leader accept/decline transactions, and leader-only member removal. These workflows pass the local MongoDB 7 replica-set integration suite. The existing Vercel project is linked, but its Production environment currently has only JWT_SECRET, NEXT_PUBLIC_APP_URL and NEXT_PUBLIC_HACKATHON_ID configured. MONGODB_URI, RESEND_API_KEY and EMAIL_FROM are absent, so a working full-stack deployment and staging tests are blocked until those external credentials are added. Do not deploy a placeholder database URI or skip email verification.
+The application includes the moderated join-request queue, leader accept/decline transactions, leader-only member removal, skill matching, and real-time board updates. The local full-stack staging stack has been verified with Docker Compose, MongoDB 7 replica-set transactions and a loopback-only trusted proxy. At the latest local check, `/api/health` returned HTTP 200 with database and change-stream checks healthy; the full suite passed 71/71 tests, the transaction-kill rollback test passed, and typecheck, production build and smoke checks passed. The local email provider is intentionally unconfigured (`emailConfigured=false`). The linked Vercel Production environment still lacks `MONGODB_URI`, `RESEND_API_KEY` and `EMAIL_FROM`; only the existing session/origin/hackathon settings are present. Therefore the public full-stack service is not deployed. The public Vercel page is a separate browser-only preview. Do not deploy a placeholder database URI or skip email verification.
 
 ## Required services
 
