@@ -33,7 +33,7 @@ export async function getSession(): Promise<Session | null> {
       { _id: new ObjectId(payload.userId) },
       { projection: { sessionVersion: 1, emailVerified: 1, timeZone: 1, skills: 1 } },
     );
-    if (!user || user.emailVerified === false || (user.sessionVersion ?? 0) !== (typeof payload.sessionVersion === "number" ? payload.sessionVersion : 0)) return null;
+    if (!user || (process.env.AUTH_EMAIL_VERIFICATION_REQUIRED === "true" && user.emailVerified === false) || (user.sessionVersion ?? 0) !== (typeof payload.sessionVersion === "number" ? payload.sessionVersion : 0)) return null;
     const timeZone = typeof user.timeZone === "string" && isValidTimeZone(user.timeZone) ? user.timeZone : "UTC";
     return { userId: payload.userId, email: payload.email, name: payload.name, timeZone, skills: Array.isArray(user.skills) ? user.skills.filter((x): x is string => typeof x === "string").slice(0, 20) : [], sessionVersion: typeof payload.sessionVersion === "number" ? payload.sessionVersion : 0 };
   } catch { return null; }
@@ -58,7 +58,7 @@ export async function loginUser(email: string, password: string) {
   signingKey(); if (Buffer.byteLength(password, "utf8") > 72) throw Error("Invalid email or password");
   const u = await (await database()).collection("users").findOne({ email: email.trim().toLowerCase() });
   if (!u || !(await bcrypt.compare(password, u.passwordHash))) throw Error("Invalid email or password");
-  if (u.emailVerified === false) throw Error("EMAIL_NOT_VERIFIED");
+  if (process.env.AUTH_EMAIL_VERIFICATION_REQUIRED === "true" && u.emailVerified === false) throw Error("EMAIL_NOT_VERIFIED");
   const timeZone = typeof u.timeZone === "string" && isValidTimeZone(u.timeZone) ? u.timeZone : "UTC";
   return { userId: u._id.toString(), email: u.email as string, name: u.name as string, timeZone, skills: Array.isArray(u.skills) ? u.skills.filter((x): x is string => typeof x === "string").slice(0, 20) : [], sessionVersion: typeof u.sessionVersion === "number" ? u.sessionVersion : 0 };
 }

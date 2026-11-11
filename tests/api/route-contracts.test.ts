@@ -163,10 +163,13 @@ describe("authentication API contracts", () => {
     expect(cookieStore.delete).toHaveBeenCalledWith("crewforge_session");
   });
 
-  it("POST /api/auth reports missing email-provider configuration after account creation", async () => {
-    mocks.registerUser.mockResolvedValue({ userId: "507f1f77bcf86cd799439011", email: user.email, name: user.name });
+  it("POST /api/auth creates a session without email delivery when verification is not required", async () => {
+    delete process.env.AUTH_EMAIL_VERIFICATION_REQUIRED;
+    mocks.registerUser.mockResolvedValue(user);
     const response = await authPost(request("/api/auth", "POST", { action: "register", email: user.email, name: user.name, password: "valid-password" }));
-    expect(response.status).toBe(503);
+    expect(response.status).toBe(201);
+    expect(mocks.createSession).toHaveBeenCalledWith(user);
+    expect(await response.json()).toMatchObject({ user });
     expect(mocks.registerUser).toHaveBeenCalledOnce();
   });
 });

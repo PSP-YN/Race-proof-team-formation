@@ -22,7 +22,7 @@ export async function POST(req:NextRequest){
  try{
   if(d.action==="logout"){(await cookies()).delete("crewforge_session");return NextResponse.json({ok:true})}
   const user=d.action==="register"?await registerUser(d.email,d.name,d.password,d.timeZone,d.skills):await loginUser(d.email,d.password);
-  if(d.action==="register"){
+  if(d.action==="register" && process.env.AUTH_EMAIL_VERIFICATION_REQUIRED === "true"){
    const token=randomBytes(32).toString("base64url"),now=new Date();
    await db.collection("authTokens").insertOne({userId:new (await import("mongodb")).ObjectId(user.userId),purpose:"verify-email",tokenHash:createHash("sha256").update(token).digest("hex"),createdAt:now,expiresAt:new Date(now.getTime()+24*60*60*1000)});
    let sentOk=false;try{const sent=await fetch("https://api.resend.com/emails",{method:"POST",headers:{"Authorization":"Bearer "+(process.env.RESEND_API_KEY||""),"Content-Type":"application/json"},body:JSON.stringify({from:process.env.EMAIL_FROM,to:[user.email],subject:"Verify your CrewForge email",text:"Verify your email within 24 hours: "+(process.env.NEXT_PUBLIC_APP_URL||req.nextUrl.origin)+"/verify?token="+token}),signal:AbortSignal.timeout(5000)});sentOk=sent.ok}catch{/* The user can request another verification email after provider failure. */}
@@ -30,7 +30,7 @@ export async function POST(req:NextRequest){
    return NextResponse.json({verificationRequired:true},{status:201,headers:{"Cache-Control":"no-store"}});
   }
   await createSession(user);
-  return NextResponse.json({user},{status:200,headers:{"Cache-Control":"no-store"}});
+  return NextResponse.json({user},{status:d.action==="register"?201:200,headers:{"Cache-Control":"no-store"}});
  }catch(e){
   const m=e instanceof Error?e.message:"";
   if(m.includes("duplicate key"))return NextResponse.json({error:"Email already registered"},{status:409});

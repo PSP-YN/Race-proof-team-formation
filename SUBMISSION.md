@@ -63,7 +63,7 @@ See [docs/performance.md](docs/performance.md) for the tested commit and caveats
 
 Use the reproducible [Docker Compose runbook](docs/docker-compose.md): copy `.env.example` to `.env`, set a unique `JWT_SECRET` and separate 16+ character `SEED_DEMO_PASSWORD` / `JUDGE_DEMO_PASSWORD` values, then run `docker compose up --build -d`. Seed only a fresh disposable volume with `docker compose --profile seed run --rm seed`. Open **http://localhost:3002** through the loopback-only trusted proxy. Port 3001 is for diagnostics. The full local test, chaos and smoke commands are in the runbook.
 
-Email verification and recovery flows require a configured Resend sender. Without one, those flows remain deliberately unavailable. Never use the demo seed against a production database.
+For the hackathon demo, `AUTH_EMAIL_VERIFICATION_REQUIRED=false` permits registration and login without a transactional email provider; the app does not claim these email addresses are verified. Email-based password recovery is explicitly unavailable in this mode. Enable verification only with a verified sender and `AUTH_EMAIL_VERIFICATION_REQUIRED=true`. Never use the demo seed against a production database.
 
 ## Before submitting
 
@@ -72,7 +72,7 @@ Email verification and recovery flows require a configured Resend sender. Withou
 - [x] Record the 2:04 full-stack staging walkthrough with narration and English captions; verify the public embed and asset links.
 - [ ] Re-check all repository links, setup steps and public visibility from a signed-out browser.
 - [ ] Complete the organizer's submission form before the deadline.
-- [ ] Configure MongoDB Atlas and Resend production credentials, deploy the full-stack app, then complete the staging verification matrix. Confirm the public static demo URL opens in a signed-out/incognito browser and disclose its simulation boundary.
+- [ ] Configure a production MongoDB replica-set URI and non-empty session secret, deploy the full-stack app, then complete the staging verification matrix. Resend is optional for the hackathon demo only while email verification remains disabled. Confirm the public static demo URL opens in a signed-out/incognito browser and disclose its simulation boundary.
 
 ## Demo deployment boundary
 
