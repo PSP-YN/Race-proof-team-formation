@@ -23,7 +23,7 @@ export async function POST(req: NextRequest, ctx: { params: Promise<{ teamId: st
   try {
     const db = await database();
     const result = await requestJoinTransaction(await mongoClient(), db, {
-      ...parsed.data, teamId: new ObjectId(teamId), userId: user.userId, name: user.name,
+      ...parsed.data, teamId: new ObjectId(teamId), userId: user.userId, name: user.name, timeZone: user.timeZone || "UTC",
     });
     return NextResponse.json({ ok: true, ...result }, { status: result.replayed ? 200 : 201 });
   } catch (error) {

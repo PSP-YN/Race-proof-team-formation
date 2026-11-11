@@ -7,13 +7,14 @@ This document separates automated white-box verification, automated black-box sm
 | Area | Automated location | Current assertion |
 |---|---|---|
 | Team size invariants | tests/unit/invariants.test.ts | Valid min/max sizes are accepted; invalid ranges are rejected |
-| Route-handler API contracts | tests/api/route-contracts.test.ts | 45 request/response tests across auth, team, join requests, member management and health endpoints |
-| Skill matching | tests/unit/invariants.test.ts | Scores reward uncovered skills and available capacity; unrelated or already-covered skills are not rewarded |
+| Route-handler API contracts | tests/api/route-contracts.test.ts | 49 request/response tests across auth, team, join requests, member management and health endpoints |
+| Skill matching | tests/unit/invariants.test.ts | Scores reward uncovered skills (65%), time-zone proximity (20%) and open-seat capacity (15%); unrelated or already-covered skills are not rewarded. Missing time-zone data is neutral |
 | Membership transaction integration | tests/integration/race.test.ts | 11 real-MongoDB tests: 50-way final-seat approval race, cross-team uniqueness, idempotency, moderated requests, leader authorization, accept/decline, full-seat rejection and leader member removal |
+| Transaction fault injection | tests/chaos/kill-mid-join.mjs | Kills a worker after transaction writes are staged but before commit; asserts that membership, capacity, request status and audit writes all roll back |
 | Type and build integrity | CI | TypeScript typecheck and Next.js production build pass |
 | Dependency risk | CI | npm audit reports no vulnerabilities at the configured moderate threshold |
 
-The route-handler API contract suite in `tests/api/route-contracts.test.ts` adds 45 automated tests using real `NextRequest` inputs and route handlers with database/auth/security dependencies isolated behind mocks. It covers authentication session responses, malformed and invalid auth payloads, login outcomes, logout cookie clearing, missing email-provider configuration, team board caching, team creation authorization and validation, join authorization/idempotency validation, and health readiness/failure responses. These are route-level API tests, not full deployed end-to-end tests; provider delivery, database-backed invitation lifecycle, role authorization across every mutation, and staging abuse behavior remain in the manual matrix below. The MongoDB replica-set integration suite exercises the 50-request concurrent approval race, cross-team duplicate membership, idempotent replay, request creation/approval/decline, capacity exhaustion and member removal against a real database. The 50-way race test calls the same `requestJoinTransaction` and `decideJoinRequestTransaction` helpers used by the join-request HTTP routes, rather than maintaining a second copy of the transaction algorithm.
+The route-handler API contract suite in `tests/api/route-contracts.test.ts` adds 49 automated tests using real `NextRequest` inputs and route handlers with database/auth/security dependencies isolated behind mocks. It covers authentication session responses, malformed and invalid auth payloads, login outcomes, logout cookie clearing, missing email-provider configuration, team board caching, team creation authorization and validation, join authorization/idempotency validation, and health readiness/failure responses. These are route-level API tests, not full deployed end-to-end tests; provider delivery, database-backed invitation lifecycle, role authorization across every mutation, and staging abuse behavior remain in the manual matrix below. The MongoDB replica-set integration suite exercises the 50-request concurrent approval race, cross-team duplicate membership, idempotent replay, request creation/approval/decline, capacity exhaustion and member removal against a real database. The 50-way race test calls the same `requestJoinTransaction` and `decideJoinRequestTransaction` helpers used by the join-request HTTP routes, rather than maintaining a second copy of the transaction algorithm.
 
 ## Automated black-box smoke checks
 
@@ -53,20 +54,22 @@ Run these against a disposable staging deployment using separate test accounts. 
 
 ## CI verification
 
-The GitHub Actions workflow provisions a disposable MongoDB replica set, seeds and verifies 10,000 users, 2,000 teams and 8,000 memberships, runs typecheck and automated tests, audits locked dependencies, builds the application, starts the production server, runs smoke checks, and executes the 100-VU/30-second k6 board test.
+The GitHub Actions workflow provisions a disposable MongoDB replica set, seeds and verifies 10,000 users, 2,000 teams, 6,000 memberships, 4,000 unassigned participants and 4,000 open seats, runs typecheck and automated tests, audits locked dependencies, builds the application, starts the production server, runs smoke checks, and executes the 100-VU/30-second k6 board test.
 
-Latest successful full CI run for the moderated-membership implementation commit: https://github.com/PSP-YN/Race-proof-team-formation/actions/runs/41860229364. A later documentation-only commit also passed CI and CodeQL.
+Latest successful submission-branch CI run: https://github.com/PSP-YN/Race-proof-team-formation/actions/runs/42057405278. Matching CodeQL run: https://github.com/PSP-YN/Race-proof-team-formation/actions/runs/42057405246. Both passed on commit `274feac`, including the corrected seed, 71-test suite, transaction-kill rollback and 100-VU load test.
 
 ## Local verification on submission-readiness branch
 
 The submission-readiness branch was verified locally with the following commands/results:
 
 - `npm run typecheck` — passed.
-- `MONGODB_TEST_URI='mongodb://127.0.0.1:27017/?replicaSet=rs0' npm test` — 65 tests passed across 3 files (45 API contract, 9 unit, 11 integration), including the real MongoDB replica-set race test (50 pending requests, 50 concurrent approvals, exactly one accepted).
-- `MONGODB_URI=... JWT_SECRET=... NEXT_PUBLIC_APP_URL=... npm run build` — production build passed.
+- `MONGODB_TEST_URI='mongodb://127.0.0.1:27017/?directConnection=true&replicaSet=rs0' npm test` — **71/71 tests passed across 3 files**, including 11 real MongoDB replica-set integration tests and the 50-contender final-seat approval race.
+- `MONGODB_TEST_URI='mongodb://127.0.0.1:27017/?directConnection=true&replicaSet=rs0' npm run chaos` — passed; a worker was killed after transaction writes were staged and before commit, and the database retained the original membership count, pending request and zero acceptance audit events.
+- `npm run build` — production build passed.
 - `npm audit --audit-level=moderate` — 0 vulnerabilities.
+- `BASE_URL=http://localhost:3002 npm run smoke` — all five checks passed against the Docker Compose app through its loopback-only trusted proxy: health/database, security headers, cross-origin rejection, board JSON and SSE connected event.
 
-The API route tests isolate database/auth/security dependencies with mocks. The race test uses a disposable local MongoDB replica set. These local checks do not replace the GitHub Actions run on the final merged commit or deployed black-box validation.
+The local fixture contains 10,000 synthetic users, 2,000 teams, 6,000 memberships, 4,000 unassigned participants, 4,000 open seats and 2 judge-only accounts. The API route tests isolate database/auth/security dependencies with mocks; the integration and chaos tests use separate disposable MongoDB databases. These local checks do not replace CI on the final release commit or deployed black-box validation.
 
 ## Manual release sign-off
 

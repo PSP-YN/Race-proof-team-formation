@@ -9,6 +9,7 @@ const mocks = vi.hoisted(() => ({
   createSession: vi.fn(),
   loginUser: vi.fn(),
   registerUser: vi.fn(),
+  isValidTimeZone: (zone: string) => zone === "UTC" || zone === "Asia/Kolkata",
   guardMutation: vi.fn(),
   guardEventStream: vi.fn(),
   cookies: vi.fn(),
@@ -21,6 +22,7 @@ vi.mock("@/lib/auth", () => ({
   createSession: mocks.createSession,
   loginUser: mocks.loginUser,
   registerUser: mocks.registerUser,
+  isValidTimeZone: mocks.isValidTimeZone,
 }));
 vi.mock("@/lib/security", () => ({ guardMutation: mocks.guardMutation, guardEventStream: mocks.guardEventStream }));
 vi.mock("next/headers", () => ({ cookies: mocks.cookies }));
@@ -33,8 +35,10 @@ import { PATCH as requestDecisionPatch } from "../../src/app/api/teams/[teamId]/
 import { GET as membersGet } from "../../src/app/api/teams/[teamId]/members/route";
 import { DELETE as memberDelete } from "../../src/app/api/teams/[teamId]/members/[userId]/route";
 import { GET as healthGet } from "../../src/app/api/health/route";
+import { GET as metricsGet } from "../../src/app/api/metrics/route";
+import { GET as statsGet } from "../../src/app/api/stats/route";
 
-const user = { userId: "user-123", email: "builder@example.test", name: "Builder", sessionVersion: 0 };
+const user = { userId: "user-123", email: "builder@example.test", name: "Builder", timeZone: "Asia/Kolkata", skills: ["React"], sessionVersion: 0 };
 const hackathonId = "hack4hack-crew-hiring-2026";
 
 function request(path: string, method = "GET", body?: unknown, headers: Record<string, string> = {}) {
@@ -108,6 +112,11 @@ describe("authentication API contracts", () => {
     expect(response.status).toBe(400);
   });
 
+  it("POST /api/auth rejects an invalid IANA time zone", async () => {
+    const response = await authPost(request("/api/auth", "POST", { action: "register", email: "a@example.test", name: "Alex", password: "valid-password", timeZone: "Mars/Olympus" }));
+    expect(response.status).toBe(400);
+  });
+
   it("POST /api/auth rejects a registration password below policy", async () => {
     const response = await authPost(request("/api/auth", "POST", { action: "register", email: "a@example.test", name: "Alex", password: "short" }));
     expect(response.status).toBe(400);
@@ -154,11 +163,69 @@ describe("authentication API contracts", () => {
     expect(cookieStore.delete).toHaveBeenCalledWith("crewforge_session");
   });
 
-  it("POST /api/auth reports missing email-provider configuration after account creation", async () => {
-    mocks.registerUser.mockResolvedValue({ userId: "507f1f77bcf86cd799439011", email: user.email, name: user.name });
+  it("POST /api/auth creates a session without email delivery when verification is not required", async () => {
+    delete process.env.AUTH_EMAIL_VERIFICATION_REQUIRED;
+    mocks.registerUser.mockResolvedValue(user);
     const response = await authPost(request("/api/auth", "POST", { action: "register", email: user.email, name: user.name, password: "valid-password" }));
-    expect(response.status).toBe(503);
+    expect(response.status).toBe(201);
+    expect(mocks.createSession).toHaveBeenCalledWith(user);
+    expect(await response.json()).toMatchObject({ user });
     expect(mocks.registerUser).toHaveBeenCalledOnce();
+  });
+});
+
+describe("Prometheus metrics API", () => {
+  it("exposes aggregate application metrics without personal data", async () => {
+    const collection = {
+      countDocuments: vi.fn().mockResolvedValue(7),
+      aggregate: vi.fn().mockReturnValue({ toArray: vi.fn().mockResolvedValue([{ total: 4 }, { _id: "TEAM_CREATED", total: 3 }, { _id: "JOIN_REQUEST_ACCEPTED", total: 2 }, { _id: "EMAIL_ADDRESS", total: 99 }]) }),
+    };
+    mocks.database.mockResolvedValue({ collection: vi.fn(() => collection) });
+    const response = await metricsGet();
+    const body = await response.text();
+    expect(response.status).toBe(200);
+    expect(response.headers.get("content-type")).toContain("text/plain");
+    expect(body).toContain("crewforge_database_up 1");
+    expect(body).toContain("crewforge_audit_events_total{action=\"TEAM_CREATED\"} 3");
+    expect(body).toContain("crewforge_seeded_teams_total 7");
+    expect(body).toContain("crewforge_seeded_memberships_total 7");
+    expect(body).not.toContain("EMAIL_ADDRESS");
+    expect(response.headers.get("Cache-Control")).toBe("no-store");
+  });
+
+  it("reports the database as unavailable without exposing an exception", async () => {
+    mocks.database.mockRejectedValue(new Error("private database URI"));
+    const response = await metricsGet();
+    expect(response.status).toBe(503);
+    const body = await response.text();
+    expect(body).toContain("crewforge_database_up 0");
+    expect(body).not.toContain("private database URI");
+  });
+});
+
+describe("seeded dataset stats API", () => {
+  it("reports only seeded records for the requested hackathon", async () => {
+    const users = { countDocuments: vi.fn().mockResolvedValue(10000) };
+    const teams = {
+      countDocuments: vi.fn().mockResolvedValue(2000),
+      aggregate: vi.fn().mockReturnValue({ toArray: vi.fn().mockResolvedValue([{ openSeats: 4000 }]) }),
+    };
+    const memberships = { countDocuments: vi.fn().mockResolvedValue(6000) };
+    mocks.database.mockResolvedValue({
+      collection: vi.fn((name: string) => name === "users" ? users : name === "teams" ? teams : memberships),
+    });
+
+    const response = await statsGet(request(`/api/stats?hackathonId=${hackathonId}`));
+    const payload = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(payload.dataset).toMatchObject({
+      participants: 10000, teams: 2000, memberships: 6000, openSeats: 4000,
+      kind: "seeded-test-data", source: "MongoDB",
+    });
+    expect(teams.countDocuments).toHaveBeenCalledWith({ hackathonId, seeded: true });
+    expect(memberships.countDocuments).toHaveBeenCalledWith({ hackathonId, seeded: true });
+    expect(teams.aggregate.mock.calls[0][0][0]).toEqual({ $match: { hackathonId, status: "open", seeded: true } });
   });
 });
 

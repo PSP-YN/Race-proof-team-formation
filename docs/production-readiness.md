@@ -2,13 +2,13 @@
 
 ## Current release status
 
-The application now includes the moderated join-request queue, leader accept/decline transactions, and leader-only member removal. These workflows pass the local MongoDB 7 replica-set integration suite. The existing Vercel project is linked, but its Production environment currently has only JWT_SECRET, NEXT_PUBLIC_APP_URL and NEXT_PUBLIC_HACKATHON_ID configured. MONGODB_URI, RESEND_API_KEY and EMAIL_FROM are absent, so a working full-stack deployment and staging tests are blocked until those external credentials are added. Do not deploy a placeholder database URI or skip email verification.
+The application includes the moderated join-request queue, leader accept/decline transactions, leader-only member removal, skill matching, and real-time board updates. The local full-stack staging stack has been verified with Docker Compose, MongoDB 7 replica-set transactions and a loopback-only trusted proxy. At the latest local check, `/api/health` returned HTTP 200 with database and change-stream checks healthy; the full suite passed 71/71 tests, the transaction-kill rollback test passed, and typecheck, production build and smoke checks passed. The local email provider is intentionally unconfigured (`emailConfigured=false`). The linked Vercel Production environment still lacks `MONGODB_URI` and a non-empty `JWT_SECRET`; therefore the public full-stack service is not deployed. The public Vercel page is a separate browser-only preview. Email verification is now an explicit feature flag: it is disabled for the hackathon demo when `AUTH_EMAIL_VERIFICATION_REQUIRED=false`, while production deployments that require verified identities must set it to `true` and configure a verified sender. Email-based password recovery remains unavailable without that sender.
 
 ## Required services
 
 - **Application hosting:** Vercel project connected to this GitHub repository.
 - **Database:** MongoDB Atlas replica set or sharded cluster with transactions and change streams enabled.
-- **Email:** Resend account with a verified sender domain.
+- **Email:** Optional for the hackathon demo. Required only when `AUTH_EMAIL_VERIFICATION_REQUIRED=true`; Resend or another transactional provider must have a verified sender.
 - **Domain and edge security:** production domain with DNS and, if using the provided WAF, a proxied Cloudflare zone.
 - **Monitoring:** hosting logs, MongoDB metrics, email delivery/bounce monitoring, and an alert destination.
 
@@ -22,7 +22,8 @@ Configure secrets directly in the hosting provider's encrypted environment setti
 | `JWT_SECRET` | Yes | Session signing key; at least 32 random characters |
 | `NEXT_PUBLIC_APP_URL` | Yes | Canonical HTTPS application origin |
 | `RESEND_API_KEY` | Yes for email flows | Resend API credential |
-| `EMAIL_FROM` | Yes for email flows | Verified sender identity |
+| `EMAIL_FROM` | Required when verification/recovery email is enabled | Verified sender identity |
+| `AUTH_EMAIL_VERIFICATION_REQUIRED` | No (default false) | Set `true` only when a verified transactional sender is configured; otherwise demo accounts can sign in without claiming their email is verified |
 | `ADMIN_EMAILS` | Yes for operations dashboard | Comma-separated operator email allowlist |
 | `SECURITY_ALERT_WEBHOOK` | Optional | Private webhook for threshold alerts |
 | `TRUSTED_CLIENT_IP_HEADER` | Self-hosted only | Header overwritten by a trusted reverse proxy; Vercel uses its platform-provided client IP header |
@@ -64,7 +65,7 @@ Never run the demo seed against a production database. The seed script requires 
 
 Do not create a production deployment with placeholder database credentials or a placeholder JWT secret.
 
-## Resend setup
+## Resend setup (optional for hackathon demo)
 
 1. Add the sender domain to Resend.
 2. Publish the exact SPF and DKIM records supplied by Resend.
@@ -93,7 +94,8 @@ The application sends transactional email directly through the Resend API. Provi
 - Mutating API routes require same-origin requests.
 - Rate limits use a trusted client IP source and persistent MongoDB counters.
 - Sessions use HttpOnly, SameSite=Lax cookies and session-version invalidation.
-- Verification, recovery, and invite tokens are stored as hashes and are single-use/expiring.
+- When enabled, verification and recovery tokens are stored as hashes and are single-use/expiring.
+- With `AUTH_EMAIL_VERIFICATION_REQUIRED=false`, registration/login works without email delivery; email addresses are not asserted to be verified, and email-based recovery is unavailable.
 - Security telemetry stores hashed identity keys, not raw passwords, tokens, or raw IP addresses.
 - Admin telemetry access is checked server-side against `ADMIN_EMAILS`.
 
@@ -124,7 +126,7 @@ Do not begin with a large stress test against production. Set a test window and 
 - [ ] No unresolved security review findings
 - [ ] Production secrets configured in hosting settings
 - [ ] Atlas backup and restore procedure verified
-- [ ] Resend sender and delivery flows verified
+- [ ] If email verification is enabled: sender and delivery flows verified
 - [ ] Domain and TLS verified
 - [ ] WAF reviewed and tested, if enabled
 - [ ] Black-box matrix in [docs/test-strategy.md](test-strategy.md) completed in staging
